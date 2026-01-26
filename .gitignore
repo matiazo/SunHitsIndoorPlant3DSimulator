@@ -1,0 +1,17 @@
+# OS-specific files
+.DS_Store # macOS
+Thumbs.db # Windows
+
+# Environment variables
+.env
+
+# Dependencies
+node_modules/ # Node.js
+vendor/ # PHP, Ruby
+__pycache__/ # Python
+
+# Compiled/Generated files
+/build/
+/dist/
+*.log
+*.temp
