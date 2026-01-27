@@ -1,0 +1,2 @@
+[console_scripts]
+sun-plant-sim = sun_plant_simulator.cli:main

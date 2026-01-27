@@ -1,0 +1,21 @@
+Metadata-Version: 2.4
+Name: sun-plant-simulator
+Version: 0.1.0
+Summary: A deterministic geometric simulator for sunlight-plant hit detection
+Author: Sun Plant Simulator Team
+License: MIT
+Keywords: simulation,sunlight,3d,geometry,home-assistant
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=1.24.0
+Requires-Dist: plotly>=5.18.0
+Requires-Dist: pydantic>=2.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.4.0; extra == "dev"

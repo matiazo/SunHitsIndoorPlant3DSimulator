@@ -1,0 +1,187 @@
+# Home Assistant Configuration Example for Sun-Plant Simulator
+# ============================================================
+#
+# This shows how to integrate the sun-plant hit detection with Home Assistant.
+# Copy the relevant sections to your configuration.yaml or packages.
+#
+# Prerequisites:
+#   1. Copy the sun_plant_simulator folder to your HA config directory
+#   2. Copy check_plant_sun.py to your HA config directory
+#   3. Copy config/default_config.json to your HA config directory
+#   4. Install numpy: pip install numpy (in HA Python environment)
+#
+# Directory structure in HA config:
+#   /config/
+#     ├── configuration.yaml
+#     ├── check_plant_sun.py
+#     ├── default_config.json  (or config/default_config.json)
+#     └── sun_plant_simulator/
+#         ├── __init__.py
+#         ├── core/
+#         └── homeassistant/
+
+# ============================================================
+# OPTION 1: Command-line Binary Sensor (Recommended)
+# ============================================================
+# This creates a binary sensor that updates every minute.
+# The sensor will be "on" when the plant receives direct sunlight.
+
+command_line:
+  - binary_sensor:
+      name: "Plant Receiving Sunlight"
+      unique_id: plant_sunlight_sensor
+      # Command passes sun azimuth and elevation from HA's sun entity
+      command: >-
+        python3 /config/check_plant_sun.py
+        {{ state_attr('sun.sun', 'azimuth') | float(0) }}
+        {{ state_attr('sun.sun', 'elevation') | float(0) }}
+      # Update every 60 seconds (sun doesn't move that fast)
+      scan_interval: 60
+      payload_on: "on"
+      payload_off: "off"
+      device_class: light
+
+
+# ============================================================
+# OPTION 2: Command-line Sensor with JSON (More Details)
+# ============================================================
+# This provides additional attributes like which window is hit.
+
+  - sensor:
+      name: "Plant Sunlight Details"
+      unique_id: plant_sunlight_details
+      command: >-
+        python3 /config/check_plant_sun.py --json
+        {{ state_attr('sun.sun', 'azimuth') | float(0) }}
+        {{ state_attr('sun.sun', 'elevation') | float(0) }}
+      scan_interval: 60
+      value_template: "{{ value_json.is_hit }}"
+      json_attributes:
+        - window_id
+        - reason
+        - n_hit_points
+        - sun_azimuth
+        - sun_elevation
+
+
+# ============================================================
+# AUTOMATION: Open blinds when plant gets sunlight
+# ============================================================
+# This automation opens your blinds/cover when the plant starts
+# receiving direct sunlight.
+
+automation:
+  - id: plant_sunlight_open_blinds
+    alias: "Open blinds when plant gets sun"
+    description: "Opens living room blinds when direct sunlight hits the plant"
+
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.plant_receiving_sunlight
+        to: "on"
+
+    condition:
+      # Only during daytime
+      - condition: sun
+        after: sunrise
+        before: sunset
+      # Optional: only when someone is home
+      # - condition: state
+      #   entity_id: group.family
+      #   state: "home"
+
+    action:
+      - service: cover.open_cover
+        target:
+          entity_id: cover.living_room_blinds
+      - service: notify.mobile_app_your_phone
+        data:
+          message: "Opening blinds - your plant is getting sunshine!"
+
+
+  - id: plant_sunlight_close_blinds
+    alias: "Close blinds when plant stops getting sun"
+    description: "Closes living room blinds when direct sunlight leaves the plant"
+
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.plant_receiving_sunlight
+        to: "off"
+        for:
+          minutes: 5  # Wait 5 minutes to avoid rapid toggling
+
+    condition:
+      - condition: sun
+        after: sunrise
+        before: sunset
+
+    action:
+      - service: cover.close_cover
+        target:
+          entity_id: cover.living_room_blinds
+
+
+# ============================================================
+# BLUEPRINT INPUT EXAMPLE
+# ============================================================
+# If you want to use this in a blueprint, here's how to reference
+# the sensor in your blueprint's input:
+
+# blueprint:
+#   name: Plant Sunlight Control
+#   description: Control covers based on plant sunlight
+#   domain: automation
+#   input:
+#     sunlight_sensor:
+#       name: Plant Sunlight Sensor
+#       description: Binary sensor that detects plant sunlight
+#       selector:
+#         entity:
+#           domain: binary_sensor
+#     cover_entity:
+#       name: Cover to control
+#       selector:
+#         entity:
+#           domain: cover
+#
+# trigger:
+#   - platform: state
+#     entity_id: !input sunlight_sensor
+#     to: "on"
+# action:
+#   - service: cover.open_cover
+#     target:
+#       entity_id: !input cover_entity
+
+
+# ============================================================
+# TEMPLATE SENSOR ALTERNATIVE (No external script)
+# ============================================================
+# If you want a pure-HA solution without Python, you can create
+# a template sensor that approximates the hit detection.
+# This is less accurate but doesn't require external files.
+#
+# Note: This only checks if sun is in the right direction for
+# your wall orientation - it doesn't do full ray-window intersection.
+
+template:
+  - binary_sensor:
+      - name: "Plant Sunlight Approximate"
+        unique_id: plant_sunlight_approximate
+        state: >-
+          {% set az = state_attr('sun.sun', 'azimuth') | float(0) %}
+          {% set el = state_attr('sun.sun', 'elevation') | float(0) %}
+          {% set wall1_normal = 210 %}
+          {% set wall2_normal = 300 %}
+          {% set tolerance = 90 %}
+
+          {% if el <= 0 %}
+            false
+          {% elif (az - wall1_normal) | abs < tolerance or (az - wall1_normal + 360) % 360 < tolerance %}
+            true
+          {% elif (az - wall2_normal) | abs < tolerance or (az - wall2_normal + 360) % 360 < tolerance %}
+            true
+          {% else %}
+            false
+          {% endif %}
+        device_class: light

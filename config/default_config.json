@@ -1,0 +1,129 @@
+{
+  "coordinate_system": "simplified",
+  "units": "meters",
+  "description": "Simplified coordinate system: Wall 1 along X-axis, Wall 2 along Y-axis",
+
+  "location": {
+    "latitude": 28.349035,
+    "longitude": -81.245962,
+    "timezone_offset": -5,
+    "description": "Orlando, FL area. Use -5 for EST, -4 for EDT"
+  },
+
+  "corner": {
+    "x": 0.0,
+    "y": 0.0,
+    "description": "Corner where wall 1 and wall 2 meet (origin)"
+  },
+
+  "walls": [
+    {
+      "id": "wall_1",
+      "outward_normal_azimuth_deg": 210,
+      "axis": "x",
+      "description": "Wall 1 runs along X-axis, normal points in -Y direction (South)"
+    },
+    {
+      "id": "wall_2",
+      "outward_normal_azimuth_deg": 300,
+      "axis": "y",
+      "description": "Wall 2 runs along Y-axis, normal points in -X direction (West)"
+    }
+  ],
+
+  "windows": [
+    {
+      "id": "window_1a",
+      "wall_id": "wall_1",
+      "x_position": 2.0,
+      "center": [2.0, 0.0, 4.75],
+      "width": 1.5,
+      "height": 1.5,
+      "z_bottom": 4.0,
+      "z_top": 5.5
+    },
+    {
+      "id": "window_1b",
+      "wall_id": "wall_1",
+      "x_position": 5.0,
+      "center": [5.0, 0.0, 4.75],
+      "width": 1.5,
+      "height": 1.5,
+      "z_bottom": 4.0,
+      "z_top": 5.5
+    },
+    {
+      "id": "window_1c",
+      "wall_id": "wall_1",
+      "x_position": 8.0,
+      "center": [8.0, 0.0, 4.75],
+      "width": 1.5,
+      "height": 1.5,
+      "z_bottom": 4.0,
+      "z_top": 5.5
+    },
+    {
+      "id": "window_1d",
+      "wall_id": "wall_1",
+      "x_position": 11.0,
+      "center": [11.0, 0.0, 4.75],
+      "width": 1.5,
+      "height": 1.5,
+      "z_bottom": 4.0,
+      "z_top": 5.5
+    },
+    {
+      "id": "window_2a",
+      "wall_id": "wall_2",
+      "y_position": 2.0,
+      "center": [0.0, 2.0, 4.75],
+      "width": 1.5,
+      "height": 1.5,
+      "z_bottom": 4.0,
+      "z_top": 5.5
+    },
+    {
+      "id": "window_2b",
+      "wall_id": "wall_2",
+      "y_position": 5.0,
+      "center": [0.0, 5.0, 4.75],
+      "width": 1.5,
+      "height": 1.5,
+      "z_bottom": 4.0,
+      "z_top": 5.5
+    },
+    {
+      "id": "window_2c",
+      "wall_id": "wall_2",
+      "y_position": 8.0,
+      "center": [0.0, 8.0, 4.75],
+      "width": 1.5,
+      "height": 1.5,
+      "z_bottom": 4.0,
+      "z_top": 5.5
+    },
+    {
+      "id": "window_2d",
+      "wall_id": "wall_2",
+      "y_position": 11.0,
+      "center": [0.0, 11.0, 4.75],
+      "width": 1.5,
+      "height": 1.5,
+      "z_bottom": 4.0,
+      "z_top": 5.5
+    }
+  ],
+
+  "plant": {
+    "center_x": 5.5,
+    "center_y": 10,
+    "radius": 0.3,
+    "z_min": 0.0,
+    "z_max": 1.2
+  },
+
+  "simulation": {
+    "sample_points_angular": 8,
+    "sample_points_vertical": 3
+  }
+}
