@@ -115,11 +115,13 @@ class TestPhysicalSanity:
         )
 
         # Sun in the south (aligned with window normal)
+        # For simplified coords with wall1 at 180°, rotation is 180-180=0°
         result = check_sun_hits_plant(
             sun_azimuth_deg=180,  # South
             sun_elevation_deg=10,  # Low angle to ensure ray passes through window height
             plant=plant,
             windows=[window],
+            wall1_normal_azimuth=180,  # Match window's wall normal
         )
         assert result.is_hit, "Sun aligned with window normal should hit"
 
@@ -278,3 +280,77 @@ class TestTimezoneHandling:
         assert data_without_tz, "Expected baseline sun data"
         baseline = data_without_tz[0]
         assert abs(baseline["azimuth_deg"] - entry["azimuth_deg"]) > 1.0
+
+
+class TestFeb1Measurements:
+    """Tests based on real-world observations on Feb 1, 2026.
+
+    Observed behavior:
+    - Light from wall_1 starts hitting plant around 14:50
+    - Light continues to hit plant until at least 15:10
+    """
+
+    def test_hit_at_15_05(self):
+        """At 15:05 on Feb 1, light from wall_1 should hit the plant."""
+        config = Config.from_json_file("config/default_config.json")
+
+        # Sun position at 15:05 on Feb 1, 2026
+        # Az=222.39°, El=32.17° (calculated from NOAA algorithm)
+        result = check_sun_hits_plant(
+            sun_azimuth_deg=222.39,
+            sun_elevation_deg=32.17,
+            plant=config.plant,
+            windows=config.windows,
+        )
+
+        print(f"\n15:05 hit test:")
+        print(f"  Plant: ({config.plant.center_x}, {config.plant.center_y})")
+        print(f"  Is hit: {result.is_hit}")
+        print(f"  Window: {result.window_id}")
+
+        assert result.is_hit, "Plant should be hit at 15:05"
+        assert result.window_id and result.window_id.startswith("window_1"), \
+            f"Light should come from wall_1, got {result.window_id}"
+
+    def test_hit_window_is_from_wall1_after_1450(self):
+        """Between 14:50 and 15:20, hits should come from wall_1 windows."""
+        config = Config.from_json_file("config/default_config.json")
+
+        # Test several times in the observed hit window
+        test_cases = [
+            (218.96, 34.31, "14:50"),  # First hit
+            (221.27, 32.90, "15:00"),
+            (222.39, 32.17, "15:05"),
+            (223.48, 31.42, "15:10"),
+        ]
+
+        for az, el, time_str in test_cases:
+            result = check_sun_hits_plant(
+                sun_azimuth_deg=az,
+                sun_elevation_deg=el,
+                plant=config.plant,
+                windows=config.windows,
+            )
+
+            assert result.is_hit, f"Plant should be hit at {time_str}"
+            assert result.window_id and result.window_id.startswith("window_1"), \
+                f"At {time_str}: Light should come from wall_1, got {result.window_id}"
+
+    def test_no_hit_before_1450(self):
+        """Before 14:50, the plant should not be hit from wall_1."""
+        config = Config.from_json_file("config/default_config.json")
+
+        # At 14:40, sun is at Az=216.56°, El=35.66°
+        result = check_sun_hits_plant(
+            sun_azimuth_deg=216.56,
+            sun_elevation_deg=35.66,
+            plant=config.plant,
+            windows=config.windows,
+        )
+
+        print(f"\n14:40 test:")
+        print(f"  Is hit: {result.is_hit}")
+        print(f"  Window: {result.window_id}")
+
+        # At 14:40 the light should not yet hit the plant
+        assert not result.is_hit, "Plant should not be hit at 14:40"

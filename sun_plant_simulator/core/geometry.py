@@ -178,3 +178,36 @@ def azimuth_to_direction_2d(azimuth_deg: float) -> np.ndarray:
     """
     az_rad = math.radians(azimuth_deg)
     return np.array([math.sin(az_rad), math.cos(az_rad)])
+
+
+def sun_direction_simplified(
+    sun_azimuth_deg: float,
+    sun_elevation_deg: float,
+    wall1_normal_azimuth: float = 210.0,
+) -> np.ndarray:
+    """Compute sun direction in the simplified coordinate system.
+
+    The simplified coordinate system has:
+    - Wall 1 along the X axis at y=0, with outward normal pointing in -Y direction
+    - Wall 2 along the Y axis at x=0, with outward normal pointing in -X direction
+
+    This requires rotating the real-world sun direction by the difference between
+    the wall's real azimuth and its simplified azimuth (180° for wall 1).
+
+    Args:
+        sun_azimuth_deg: Sun azimuth in degrees, clockwise from North (real world).
+        sun_elevation_deg: Sun elevation above horizon in degrees.
+        wall1_normal_azimuth: Real-world azimuth of wall 1's outward normal.
+
+    Returns:
+        Unit vector [x, y, z] pointing toward the sun in simplified coordinates.
+    """
+    # In simplified coords, wall 1 normal is 180° (due South, -Y)
+    # The rotation from ENU to simplified is: wall1_normal_azimuth - 180°
+    rotation = wall1_normal_azimuth - 180.0
+
+    # Rotate sun azimuth into simplified frame
+    simplified_azimuth = sun_azimuth_deg - rotation
+
+    # Now compute direction using standard formula
+    return sun_direction_from_angles(simplified_azimuth, sun_elevation_deg)

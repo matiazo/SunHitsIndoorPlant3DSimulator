@@ -9,7 +9,7 @@ from typing import Optional
 
 import numpy as np
 
-from .geometry import sun_direction_from_angles
+from .geometry import sun_direction_from_angles, sun_direction_simplified
 from .models import Config, HitResult, Plant, Window
 from .ray_casting import ray_intersects_window, ray_window_intersection
 
@@ -66,11 +66,15 @@ def check_sun_hits_plant(
     windows: list[Window],
     n_angular: int = 8,
     n_vertical: int = 3,
+    wall1_normal_azimuth: float = 210.0,
 ) -> HitResult:
     """Determine if direct sunlight hits the plant through any window.
 
     This is the main algorithm. For each sample point on the plant cylinder,
     it casts a ray toward the sun and checks if that ray passes through any window.
+
+    The algorithm uses a simplified coordinate system where walls are axis-aligned.
+    The sun direction is rotated from real-world coordinates into this simplified frame.
 
     Args:
         sun_azimuth_deg: Sun azimuth in degrees, clockwise from North [0, 360).
@@ -79,6 +83,7 @@ def check_sun_hits_plant(
         windows: List of window definitions.
         n_angular: Number of angular divisions for plant sampling.
         n_vertical: Number of vertical divisions for plant sampling.
+        wall1_normal_azimuth: Real-world azimuth of wall 1's outward normal.
 
     Returns:
         HitResult containing:
@@ -92,8 +97,8 @@ def check_sun_hits_plant(
     if sun_elevation_deg <= 0:
         return HitResult(is_hit=False, reason="sun_below_horizon")
 
-    # Compute sun direction vector (pointing toward sun)
-    sun_dir = sun_direction_from_angles(sun_azimuth_deg, sun_elevation_deg)
+    # Compute sun direction vector in simplified coordinate system
+    sun_dir = sun_direction_simplified(sun_azimuth_deg, sun_elevation_deg, wall1_normal_azimuth)
 
     # Generate sample points on the plant
     sample_points = generate_plant_sample_points(plant, n_angular, n_vertical)

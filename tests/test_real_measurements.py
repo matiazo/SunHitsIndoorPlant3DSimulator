@@ -340,27 +340,22 @@ class TestGeometryConsistency:
         assert abs(window.height - 1.5) < 0.1, f"Window height {window.height}m should be ~1.5m"
 
     def test_plant_position_matches_measurement(self):
-        """Plant should be positioned to receive light based on window geometry.
+        """Plant should be positioned using simplified coordinates.
 
-        Plant ENU coordinates are derived from perpendicular distances:
-        - 8m perpendicular from front wall (azimuth 210°)
-        - 3.9m perpendicular from side wall (azimuth 300°)
-
-        Conversion to ENU:
-        - Front wall inward direction (30°): (0.5, 0.866)
-        - Side wall inward direction (120°): (0.866, -0.5)
-        - Plant ENU = 8*(0.5, 0.866) + 3.9*(0.866, -0.5) = (7.38, 4.98)
+        In simplified coordinates with wall distances:
+        - dist_from_wall1 = 8m -> center_y = 8.0
+        - dist_from_wall2 = 3.9m -> center_x = 3.9
         """
         plant = CONFIG.plant
 
         print(f"\nPlant position:")
-        print(f"  Center (ENU): ({plant.center_x}, {plant.center_y})")
+        print(f"  Center: ({plant.center_x}, {plant.center_y})")
         print(f"  Radius: {plant.radius}m")
         print(f"  Height: {plant.z_min}m to {plant.z_max}m")
 
-        # Expected ENU coordinates derived from perpendicular wall distances
-        expected_x = 7.38
-        expected_y = 4.98
+        # Expected simplified coordinates from wall distances
+        expected_x = 3.9  # dist_from_wall2
+        expected_y = 8.0  # dist_from_wall1
 
         assert abs(plant.center_x - expected_x) < 0.1, \
             f"Plant X={plant.center_x}m should be ~{expected_x}m"

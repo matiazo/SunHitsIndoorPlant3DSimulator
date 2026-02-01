@@ -1,5 +1,5 @@
 {
-  "coordinate_system": "enu",
+  "coordinate_system": "simplified",
   "units": "meters",
   "description": "Configuration tuned to match real-world measurements from 2026-01-28.",
 
@@ -118,12 +118,12 @@
   ],
 
   "plant": {
-    "center_x": 7.38,
-    "center_y": 4.98,
+    "dist_from_wall1": 8.0,
+    "dist_from_wall2": 3.9,
     "radius": 0.3,
     "z_min": 0.0,
     "z_max": 1.2,
-    "description": "Coordinates derived from distances: 8m perpendicular from front wall (az 210), 3.9m perpendicular from side wall (az 300)."
+    "description": "8m perpendicular from front wall (az 210), 3.9m perpendicular from side wall (az 300)."
   },
 
   "simulation": {

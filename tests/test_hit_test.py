@@ -142,6 +142,7 @@ class TestCheckSunHitsPlant:
             sun_elevation_deg=20,  # Above horizon
             plant=plant,
             windows=[window],
+            wall1_normal_azimuth=180,  # Match window's wall normal
         )
 
         # Should hit - sun rays from south pass through south-facing window to plant inside
@@ -225,6 +226,7 @@ class TestMultipleWindows:
             sun_elevation_deg=20,
             plant=plant,
             windows=windows,
+            wall1_normal_azimuth=180,  # Match window_south wall normal
         )
 
         assert result.is_hit
@@ -258,6 +260,7 @@ class TestMultipleWindows:
             sun_elevation_deg=20,
             plant=plant,
             windows=windows,
+            wall1_normal_azimuth=180,  # Match window_south wall normal
         )
 
         assert result.is_hit

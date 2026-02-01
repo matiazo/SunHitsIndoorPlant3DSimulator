@@ -607,7 +607,15 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
         }}
 
         function sunDirectionFromAngles(azimuthDeg, elevationDeg) {{
-            const azRad = azimuthDeg * Math.PI / 180;
+            // In the simplified coordinate system, wall 1 is at y=0 along X-axis.
+            // The real-world wall 1 has outward normal at wall1_normal_azimuth.
+            // We need to rotate the sun azimuth from ENU (real-world) into simplified coords.
+            // The rotation angle is: wall1_normal_azimuth - 180° (inward normal direction).
+            const wall1NormalAz = config.walls?.find(w => w.id === 'wall_1')?.normal_azimuth || 210;
+            const rotation = wall1NormalAz - 180;  // 210 - 180 = 30° for default config
+            const rotatedAzimuth = azimuthDeg - rotation;
+
+            const azRad = rotatedAzimuth * Math.PI / 180;
             const elRad = elevationDeg * Math.PI / 180;
             return [
                 Math.sin(azRad) * Math.cos(elRad),
@@ -773,31 +781,32 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
                 showlegend: false,
             }});
 
-            // ========== WALL GEOMETRY (rotated to actual azimuths) ==========
-            // Wall normal azimuths from config
-            const wall1Az = wall1.normal_azimuth * Math.PI / 180;  // 210° = SW
-            const wall2Az = wall2.normal_azimuth * Math.PI / 180;  // 300° = NW
+            // ========== WALL GEOMETRY (simplified axis-aligned) ==========
+            // In the simplified coordinate system:
+            // - Wall 1 runs along the X axis at y=0 (normal points -Y, azimuth 180° in simplified)
+            // - Wall 2 runs along the Y axis at x=0 (normal points -X, azimuth 270° in simplified)
+            // The actual wall azimuths (210°, 300°) define the real-world orientation
+            // but the coordinates use simplified axis-aligned geometry
 
-            // Outward normal directions (pointing outside the room)
-            const wall1Normal = [Math.sin(wall1Az), Math.cos(wall1Az)];  // Points outward at 210°
-            const wall2Normal = [Math.sin(wall2Az), Math.cos(wall2Az)];  // Points outward at 300°
+            // Simplified wall normals (axis-aligned)
+            const wall1Normal = [0, -1];  // Wall 1 at y=0, normal points -Y
+            const wall2Normal = [-1, 0];  // Wall 2 at x=0, normal points -X
 
-            // Wall directions: perpendicular to normal
-            // Wall 1: 210° - 90° = 120° (toward ESE)
-            // Wall 2: 300° + 90° = 30° (toward NNE)
-            const wall1Dir = [-Math.cos(wall1Az), Math.sin(wall1Az)];   // 120° (ESE)
-            const wall2Dir = [Math.cos(wall2Az), -Math.sin(wall2Az)];   // 30° (NNE)
+            // Wall directions (perpendicular to normal, along the wall)
+            const wall1Dir = [1, 0];   // Wall 1 runs along +X
+            const wall2Dir = [0, 1];   // Wall 2 runs along +Y
 
-            // Position the plant at the room offset, then calculate corner from plant's ENU position
-            // Plant ENU coords (center_x, center_y) represent offset FROM corner in ENU space
-            // So corner = plant_viz_position - plant_ENU_position
+            // Corner is at origin in simplified coords, offset for visualization
             const plant = config.plant;
             const plantVizX = ROOM_OFFSET_X;
             const plantVizY = ROOM_OFFSET_Y;
+            // In simplified coords, plant.center_x is distance from wall_2 (x=0)
+            // and plant.center_y is distance from wall_1 (y=0)
+            // So corner in viz coords = plant viz position - plant simplified coords
             const cornerX = plantVizX - plant.center_x;
             const cornerY = plantVizY - plant.center_y;
 
-            // ========== WALL 1 (normal at azimuth ${{wall1.normal_azimuth}}°) ==========
+            // ========== WALL 1 (at y=0, runs along X) ==========
             // Wall runs from corner along wall1Dir
             const w1InnerStart = [cornerX, cornerY];
             const w1InnerEnd = [cornerX + wallLength * wall1Dir[0], cornerY + wallLength * wall1Dir[1]];
