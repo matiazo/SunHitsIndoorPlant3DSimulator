@@ -17,11 +17,12 @@ class Window:
 
     Attributes:
         id: Unique identifier for the window.
-        center: Center point (x, y, z) in meters (ENU coordinates).
+        center: Center point (x, y, z) in meters - this is the INNER wall face.
         width: Horizontal width in meters.
         height: Vertical height in meters.
         wall_normal_azimuth: Outward normal azimuth in degrees (clockwise from North).
         wall_id: Optional reference to parent wall.
+        wall_thickness: Thickness of the wall in meters (0 = thin plane model).
     """
 
     id: str
@@ -30,6 +31,7 @@ class Window:
     height: float
     wall_normal_azimuth: float
     wall_id: Optional[str] = None
+    wall_thickness: float = 0.0
 
     @property
     def normal(self) -> np.ndarray:
@@ -189,16 +191,26 @@ class Config:
             for w in data.get("walls", [])
         ]
 
+        # Build a dict of wall properties for quick lookup
+        wall_props = {}
+        for w in data.get("walls", []):
+            wall_props[w["id"]] = {
+                "normal": w["outward_normal_azimuth_deg"],
+                "thickness": w.get("thickness", 0.0),
+            }
+
         windows = []
         for w in data.get("windows", []):
-            # Find wall normal for this window
+            # Find wall normal and thickness for this window
             wall_id = w.get("wall_id")
             wall_normal = w.get("wall_normal_azimuth_deg")
-            if wall_normal is None and wall_id:
-                for wall in walls:
-                    if wall.id == wall_id:
-                        wall_normal = wall.outward_normal_azimuth_deg
-                        break
+            wall_thickness = w.get("wall_thickness", 0.0)
+
+            if wall_id and wall_id in wall_props:
+                if wall_normal is None:
+                    wall_normal = wall_props[wall_id]["normal"]
+                if wall_thickness == 0.0:
+                    wall_thickness = wall_props[wall_id]["thickness"]
 
             windows.append(
                 Window(
@@ -208,6 +220,7 @@ class Config:
                     height=w["height"],
                     wall_normal_azimuth=wall_normal,
                     wall_id=wall_id,
+                    wall_thickness=wall_thickness,
                 )
             )
 

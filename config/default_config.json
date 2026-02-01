@@ -20,14 +20,16 @@
     {
       "id": "wall_1",
       "outward_normal_azimuth_deg": 210,
+      "thickness": 0.30,
       "axis": "x",
-      "description": "Wall 1 runs along X-axis, normal points in -Y direction (South)"
+      "description": "Wall 1 runs along X-axis, 30cm thick wall"
     },
     {
       "id": "wall_2",
       "outward_normal_azimuth_deg": 300,
+      "thickness": 0.30,
       "axis": "y",
-      "description": "Wall 2 runs along Y-axis, normal points in -X direction (West)"
+      "description": "Wall 2 runs along Y-axis, 30cm thick wall"
     }
   ],
 
@@ -36,90 +38,91 @@
       "id": "window_1a",
       "wall_id": "wall_1",
       "x_position": 2.0,
-      "center": [2.0, 0.0, 4.75],
+      "center": [2.0, 0.0, 4.95],
       "width": 1.5,
       "height": 1.5,
-      "z_bottom": 4.0,
-      "z_top": 5.5
+      "z_bottom": 4.2,
+      "z_top": 5.7
     },
     {
       "id": "window_1b",
       "wall_id": "wall_1",
       "x_position": 5.0,
-      "center": [5.0, 0.0, 4.75],
+      "center": [5.0, 0.0, 4.95],
       "width": 1.5,
       "height": 1.5,
-      "z_bottom": 4.0,
-      "z_top": 5.5
+      "z_bottom": 4.2,
+      "z_top": 5.7
     },
     {
       "id": "window_1c",
       "wall_id": "wall_1",
       "x_position": 8.0,
-      "center": [8.0, 0.0, 4.75],
+      "center": [8.0, 0.0, 4.95],
       "width": 1.5,
       "height": 1.5,
-      "z_bottom": 4.0,
-      "z_top": 5.5
+      "z_bottom": 4.2,
+      "z_top": 5.7
     },
     {
       "id": "window_1d",
       "wall_id": "wall_1",
       "x_position": 11.0,
-      "center": [11.0, 0.0, 4.75],
+      "center": [11.0, 0.0, 4.95],
       "width": 1.5,
       "height": 1.5,
-      "z_bottom": 4.0,
-      "z_top": 5.5
+      "z_bottom": 4.2,
+      "z_top": 5.7
     },
     {
       "id": "window_2a",
       "wall_id": "wall_2",
       "y_position": 2.0,
-      "center": [0.0, 2.0, 4.75],
+      "center": [0.0, 2.0, 4.95],
       "width": 1.5,
       "height": 1.5,
-      "z_bottom": 4.0,
-      "z_top": 5.5
+      "z_bottom": 4.2,
+      "z_top": 5.7
     },
     {
       "id": "window_2b",
       "wall_id": "wall_2",
       "y_position": 5.0,
-      "center": [0.0, 5.0, 4.75],
+      "center": [0.0, 5.0, 4.95],
       "width": 1.5,
       "height": 1.5,
-      "z_bottom": 4.0,
-      "z_top": 5.5
+      "z_bottom": 4.2,
+      "z_top": 5.7
     },
     {
       "id": "window_2c",
       "wall_id": "wall_2",
       "y_position": 8.0,
-      "center": [0.0, 8.0, 4.75],
+      "center": [0.0, 8.0, 4.95],
       "width": 1.5,
       "height": 1.5,
-      "z_bottom": 4.0,
-      "z_top": 5.5
+      "z_bottom": 4.2,
+      "z_top": 5.7
     },
     {
       "id": "window_2d",
       "wall_id": "wall_2",
       "y_position": 11.0,
-      "center": [0.0, 11.0, 4.75],
+      "center": [0.0, 11.0, 4.95],
       "width": 1.5,
       "height": 1.5,
-      "z_bottom": 4.0,
-      "z_top": 5.5
+      "z_bottom": 4.2,
+      "z_top": 5.7
     }
   ],
 
   "plant": {
-    "center_x": 5.5,
-    "center_y": 10,
+    "center_x": 7.38,
+    "center_y": 4.98,
     "radius": 0.3,
     "z_min": 0.0,
-    "z_max": 1.2
+    "z_max": 1.2,
+    "description": "ENU coords derived from: 8m perpendicular from front wall (az 210), 3.9m perpendicular from side wall (az 300)"
   },
 
   "simulation": {

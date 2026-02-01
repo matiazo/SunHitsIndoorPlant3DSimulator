@@ -20,38 +20,29 @@ class TestPhysicalSanity:
         Vertical windows are perpendicular to the ground. A sun at zenith
         casts rays straight down, which are parallel to vertical windows
         and cannot pass through them.
-        """
-        plant = Plant(center_x=0, center_y=0, radius=0.3, z_min=0, z_max=1.0)
 
-        # Vertical windows in all cardinal directions
+        Uses axis-aligned coordinate system:
+        - Wall 1 at y=0
+        - Wall 2 at x=0
+        """
+        # Plant inside the room
+        plant = Plant(center_x=5, center_y=5, radius=0.3, z_min=0, z_max=1.0)
+
+        # Windows using axis-aligned coordinate system
         windows = [
             Window(
-                id="north",
-                center=np.array([0, 5, 1.0]),
-                width=2.0,
-                height=2.0,
-                wall_normal_azimuth=0,
-            ),
-            Window(
                 id="south",
-                center=np.array([0, -5, 1.0]),
+                center=np.array([5, 0, 1.0]),  # Wall 1 (y=0)
                 width=2.0,
                 height=2.0,
-                wall_normal_azimuth=180,
-            ),
-            Window(
-                id="east",
-                center=np.array([5, 0, 1.0]),
-                width=2.0,
-                height=2.0,
-                wall_normal_azimuth=90,
+                wall_normal_azimuth=180,  # South-facing
             ),
             Window(
                 id="west",
-                center=np.array([-5, 0, 1.0]),
+                center=np.array([0, 5, 1.0]),  # Wall 2 (x=0)
                 width=2.0,
                 height=2.0,
-                wall_normal_azimuth=270,
+                wall_normal_azimuth=270,  # West-facing
             ),
         ]
 
@@ -68,48 +59,58 @@ class TestPhysicalSanity:
     def test_sun_behind_wall_never_hits(self):
         """Sun on opposite side of wall from plant cannot produce hit.
 
-        If the window faces north and the sun is in the south, the sun's
+        If the window faces south and the sun is in the north, the sun's
         rays would need to pass through the wall (not window) to reach the plant.
-        """
-        plant = Plant(center_x=0, center_y=0, radius=0.3, z_min=0, z_max=1.0)
 
-        # North-facing window (on south side of plant, window faces north toward plant)
+        Uses axis-aligned coordinate system:
+        - Wall 1 at y=0 (south-facing with normal -Y)
+        """
+        # Plant inside the room
+        plant = Plant(center_x=5, center_y=3, radius=0.3, z_min=0, z_max=1.0)
+
+        # South-facing window on wall 1 (y=0)
         window = Window(
-            id="north_facing",
-            center=np.array([0, -3, 1.0]),  # South of plant
+            id="south_facing",
+            center=np.array([5, 0, 1.0]),  # Wall 1 (y=0)
             width=2.0,
             height=2.0,
-            wall_normal_azimuth=0,  # Faces north
+            wall_normal_azimuth=180,  # Faces south (normal points -Y)
         )
 
-        # Sun in the south (behind the wall)
+        # Sun in the north (behind the wall, opposite to window direction)
         for elevation in [10, 30, 45, 60]:
             result = check_sun_hits_plant(
-                sun_azimuth_deg=180,  # South
+                sun_azimuth_deg=0,  # North
                 sun_elevation_deg=elevation,
                 plant=plant,
                 windows=[window],
             )
-            # Ray would need to go south to reach sun, but window faces north
-            # So ray going south has negative dot product with north-facing normal
+            # Ray would need to go north to reach sun, but window faces south
+            # So ray going north has negative dot product with south-facing normal
             assert not result.is_hit, f"Sun behind wall should not hit at el={elevation}"
 
     def test_sun_aligned_with_normal_can_hit(self):
-        """Sun directly in front of window (aligned with normal) should hit."""
-        plant = Plant(center_x=0, center_y=0, radius=0.3, z_min=0, z_max=1.0)
+        """Sun directly in front of window (aligned with normal) should hit.
 
-        # North-facing window, positioned north of plant
+        Uses axis-aligned coordinate system:
+        - Wall 1 at y=0 (south-facing with normal pointing -Y)
+        - Wall 2 at x=0 (west-facing with normal pointing -X)
+        """
+        # Plant inside the room
+        plant = Plant(center_x=3, center_y=3, radius=0.3, z_min=0, z_max=1.0)
+
+        # South-facing window on wall 1 (y=0)
         window = Window(
-            id="north_facing",
-            center=np.array([0, 3, 0.5]),
+            id="south_facing",
+            center=np.array([3, 0, 0.5]),  # Wall 1 (y=0), aligned with plant
             width=2.0,
             height=2.0,
-            wall_normal_azimuth=0,  # Faces north
+            wall_normal_azimuth=180,  # Faces south (normal points -Y)
         )
 
-        # Sun in the north (aligned with window normal)
+        # Sun in the south (aligned with window normal)
         result = check_sun_hits_plant(
-            sun_azimuth_deg=0,  # North
+            sun_azimuth_deg=180,  # South
             sun_elevation_deg=10,  # Low angle to ensure ray passes through window height
             plant=plant,
             windows=[window],
@@ -117,21 +118,26 @@ class TestPhysicalSanity:
         assert result.is_hit, "Sun aligned with window normal should hit"
 
     def test_elevation_affects_hit(self):
-        """Higher sun elevations may miss windows at certain heights."""
-        plant = Plant(center_x=0, center_y=0, radius=0.3, z_min=0, z_max=0.5)
+        """Higher sun elevations may miss windows at certain heights.
 
-        # Window high up on wall
+        Uses axis-aligned coordinate system:
+        - Wall 1 at y=0 (south-facing)
+        """
+        # Plant inside the room
+        plant = Plant(center_x=5, center_y=3, radius=0.3, z_min=0, z_max=0.5)
+
+        # High window on wall 1 (y=0)
         window = Window(
             id="high_window",
-            center=np.array([0, 3, 5.0]),  # Center at 5m height
+            center=np.array([5, 0, 5.0]),  # Wall 1, center at 5m height
             width=2.0,
             height=1.0,  # Window from 4.5m to 5.5m
-            wall_normal_azimuth=0,
+            wall_normal_azimuth=180,  # South-facing
         )
 
         # Low elevation - rays go more horizontal, might miss high window
         result_low = check_sun_hits_plant(
-            sun_azimuth_deg=0,
+            sun_azimuth_deg=180,  # South
             sun_elevation_deg=5,
             plant=plant,
             windows=[window],
@@ -139,7 +145,7 @@ class TestPhysicalSanity:
 
         # Very high elevation - rays go more vertical
         result_high = check_sun_hits_plant(
-            sun_azimuth_deg=0,
+            sun_azimuth_deg=180,  # South
             sun_elevation_deg=80,
             plant=plant,
             windows=[window],

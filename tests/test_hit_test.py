@@ -119,59 +119,62 @@ class TestCheckSunHitsPlant:
         assert result.reason == "sun_below_horizon"
 
     def test_basic_hit_scenario(self):
-        """Test a basic scenario where sun should hit plant through window."""
-        # Plant at origin on floor
-        plant = create_test_plant(center_x=0, center_y=0, radius=0.3, z_min=0, z_max=1.5)
+        """Test a basic scenario where sun should hit plant through window.
 
-        # North-facing window (normal points north, y direction)
-        # Window above and north of plant
+        Uses the axis-aligned coordinate system where:
+        - Wall 1 is at y=0 (runs along x-axis)
+        - Wall 2 is at x=0 (runs along y-axis)
+        """
+        # Plant inside the room
+        plant = create_test_plant(center_x=5, center_y=3, radius=0.3, z_min=0, z_max=1.5)
+
+        # Window on wall 1 (y=0), south-facing (normal points south, -y direction)
         window = create_test_window(
-            center=(0, 3, 1.0),  # North of plant, at plant height
+            center=(5, 0, 1.0),  # On wall 1 at y=0, aligned with plant x
             width=2.0,
             height=2.0,
-            wall_normal_azimuth=0,  # North-facing
+            wall_normal_azimuth=180,  # South-facing (normal points -Y)
         )
 
-        # Sun in the north, slightly above horizon
-        # Sun direction will be (0, 1, z_component) approximately
+        # Sun in the south - rays travel from south toward north through window
         result = check_sun_hits_plant(
-            sun_azimuth_deg=0,  # North
+            sun_azimuth_deg=180,  # South
             sun_elevation_deg=20,  # Above horizon
             plant=plant,
             windows=[window],
         )
 
-        # Should hit - sun rays from north pass through north-facing window
+        # Should hit - sun rays from south pass through south-facing window to plant inside
         assert result.is_hit
         assert result.window_id == "test_window"
         assert len(result.hit_points) > 0
 
     def test_no_window_path(self):
         """Test scenario where sun is on wrong side (no window path)."""
-        plant = create_test_plant(center_x=0, center_y=0)
+        plant = create_test_plant(center_x=5, center_y=3)
 
-        # North-facing window
+        # South-facing window on wall 1 (y=0)
         window = create_test_window(
-            center=(0, 3, 1.0),
-            wall_normal_azimuth=0,  # North-facing
+            center=(5, 0, 1.0),
+            wall_normal_azimuth=180,  # South-facing
         )
 
-        # Sun in the south - opposite side from window
+        # Sun in the north - opposite side from where window faces
         result = check_sun_hits_plant(
-            sun_azimuth_deg=180,  # South
+            sun_azimuth_deg=0,  # North
             sun_elevation_deg=45,
             plant=plant,
             windows=[window],
         )
 
-        # Should NOT hit - sun is south but window faces north
+        # Should NOT hit - sun is north but window faces south
         assert not result.is_hit
         assert result.reason == "no_window_path"
 
     def test_sun_direction_returned(self):
         """Check that sun direction is returned in result."""
-        plant = create_test_plant()
-        windows = [create_test_window(center=(0, 3, 1.0))]
+        plant = create_test_plant(center_x=5, center_y=3)
+        windows = [create_test_window(center=(5, 0, 1.0), wall_normal_azimuth=180)]
 
         result = check_sun_hits_plant(
             sun_azimuth_deg=45,
@@ -187,68 +190,75 @@ class TestCheckSunHitsPlant:
 
 
 class TestMultipleWindows:
-    """Tests with multiple windows."""
+    """Tests with multiple windows.
+
+    Uses axis-aligned coordinate system:
+    - Wall 1 at y=0 (windows have center[1] ≈ 0)
+    - Wall 2 at x=0 (windows have center[0] ≈ 0)
+    """
 
     def test_hit_through_first_window(self):
         """Hit detected through first matching window."""
-        plant = create_test_plant(center_x=0, center_y=0)
+        # Plant inside the room
+        plant = create_test_plant(center_x=3, center_y=3)
 
         windows = [
             Window(
-                id="window_north",
-                center=np.array([0, 3, 1.0]),
+                id="window_south",
+                center=np.array([3, 0, 1.0]),  # Wall 1 (y=0), south-facing
                 width=2.0,
                 height=2.0,
-                wall_normal_azimuth=0,  # North
+                wall_normal_azimuth=180,  # South (normal -Y)
             ),
             Window(
-                id="window_east",
-                center=np.array([3, 0, 1.0]),
+                id="window_west",
+                center=np.array([0, 3, 1.0]),  # Wall 2 (x=0), west-facing
                 width=2.0,
                 height=2.0,
-                wall_normal_azimuth=90,  # East
+                wall_normal_azimuth=270,  # West (normal -X)
             ),
         ]
 
-        # Sun in north
+        # Sun in south - should hit through south-facing window
         result = check_sun_hits_plant(
-            sun_azimuth_deg=0,
+            sun_azimuth_deg=180,
             sun_elevation_deg=20,
             plant=plant,
             windows=windows,
         )
 
         assert result.is_hit
-        assert result.window_id == "window_north"
+        assert result.window_id == "window_south"
 
     def test_hit_through_second_window(self):
         """Hit detected through second window when first doesn't match."""
-        plant = create_test_plant(center_x=0, center_y=0)
+        # Plant inside the room
+        plant = create_test_plant(center_x=3, center_y=3)
 
         windows = [
             Window(
-                id="window_north",
-                center=np.array([0, 3, 1.0]),
+                id="window_south",
+                center=np.array([3, 0, 1.0]),  # Wall 1 (y=0), south-facing
                 width=2.0,
                 height=2.0,
-                wall_normal_azimuth=0,  # North
+                wall_normal_azimuth=180,  # South
             ),
             Window(
-                id="window_east",
-                center=np.array([3, 0, 1.0]),
+                id="window_west",
+                center=np.array([0, 3, 1.0]),  # Wall 2 (x=0), west-facing
                 width=2.0,
                 height=2.0,
-                wall_normal_azimuth=90,  # East
+                wall_normal_azimuth=270,  # West (normal -X)
             ),
         ]
 
-        # Sun in east
+        # Sun in west - should hit through west-facing window
         result = check_sun_hits_plant(
-            sun_azimuth_deg=90,
+            sun_azimuth_deg=270,
             sun_elevation_deg=20,
             plant=plant,
             windows=windows,
         )
 
         assert result.is_hit
-        assert result.window_id == "window_east"
+        assert result.window_id == "window_west"

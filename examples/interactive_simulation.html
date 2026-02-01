@@ -62,6 +62,133 @@
             background: white;
             border-radius: 8px;
             padding: 10px;
+        }
+        /* Config panel styles */
+        .config-panel {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .config-header {
+            background: #f0f0f0;
+            padding: 12px 20px;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            color: #333;
+        }
+        .config-header:hover {
+            background: #e8e8e8;
+        }
+        .config-toggle {
+            font-size: 18px;
+            transition: transform 0.3s;
+        }
+        .config-toggle.open {
+            transform: rotate(180deg);
+        }
+        .config-body {
+            padding: 20px;
+            display: none;
+            border-top: 1px solid #ddd;
+        }
+        .config-body.open {
+            display: block;
+        }
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .config-group {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .config-group h4 {
+            margin: 0 0 12px 0;
+            color: #555;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .config-field {
+            margin-bottom: 12px;
+        }
+        .config-field:last-child {
+            margin-bottom: 0;
+        }
+        .config-field label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .config-field input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .config-field input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        .config-field .value-display {
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+        .config-actions {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+        .config-actions button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-apply {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-apply:hover {
+            background: #45a049;
+        }
+        .btn-reset {
+            background: #f44336;
+            color: white;
+        }
+        .btn-reset:hover {
+            background: #da190b;
+        }
+        .btn-export {
+            background: #2196F3;
+            color: white;
+        }
+        .btn-export:hover {
+            background: #1976D2;
+        }
+        .saved-indicator {
+            color: #4CAF50;
+            font-size: 12px;
+            margin-left: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .saved-indicator.show {
+            opacity: 1;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .legend {
@@ -87,7 +214,67 @@
 <body>
     <div class="container">
         <h1>Sun Hits Indoor Plant - 3D Simulation</h1>
-        <h2 style="color: #666; margin-top: 0;">Date: 2026-01-26</h2>
+        <h2 style="color: #666; margin-top: 0;">Date: 2026-01-29</h2>
+
+        <!-- Configuration Panel -->
+        <div class="config-panel">
+            <div class="config-header" onclick="toggleConfig()">
+                <span>⚙️ Configuration <span class="saved-indicator" id="savedIndicator">✓ Saved</span></span>
+                <span class="config-toggle" id="configToggle">▼</span>
+            </div>
+            <div class="config-body" id="configBody">
+                <div class="config-grid">
+                    <div class="config-group">
+                        <h4>Plant Position</h4>
+                        <div class="config-field">
+                            <label>Center X (meters)</label>
+                            <input type="number" id="plantCenterX" step="0.5" min="0" max="20">
+                            <div class="value-display">Distance along Wall 1</div>
+                        </div>
+                        <div class="config-field">
+                            <label>Center Y (meters)</label>
+                            <input type="number" id="plantCenterY" step="0.5" min="0" max="20">
+                            <div class="value-display">Distance along Wall 2</div>
+                        </div>
+                    </div>
+                    <div class="config-group">
+                        <h4>Plant Size</h4>
+                        <div class="config-field">
+                            <label>Radius (meters)</label>
+                            <input type="number" id="plantRadius" step="0.05" min="0.1" max="2">
+                        </div>
+                        <div class="config-field">
+                            <label>Height (z_max, meters)</label>
+                            <input type="number" id="plantZMax" step="0.1" min="0.1" max="5">
+                        </div>
+                    </div>
+                    <div class="config-group">
+                        <h4>Wall Properties</h4>
+                        <div class="config-field">
+                            <label>Wall Thickness (meters)</label>
+                            <input type="number" id="wallThickness" step="0.05" min="0" max="1">
+                            <div class="value-display">0 = thin plane model</div>
+                        </div>
+                    </div>
+                    <div class="config-group">
+                        <h4>Simulation</h4>
+                        <div class="config-field">
+                            <label>Angular Samples</label>
+                            <input type="number" id="sampleAngular" step="1" min="4" max="16">
+                        </div>
+                        <div class="config-field">
+                            <label>Vertical Samples</label>
+                            <input type="number" id="sampleVertical" step="1" min="2" max="10">
+                        </div>
+                    </div>
+                </div>
+                <div class="config-actions">
+                    <button class="btn-apply" onclick="applyConfig()">Apply Changes</button>
+                    <button class="btn-reset" onclick="resetConfig()">Reset to Default</button>
+                    <button class="btn-export" onclick="exportConfig()">Export JSON</button>
+                </div>
+            </div>
+        </div>
 
         <div class="controls">
             <div class="time-display">Time: <span id="currentTime">--:--</span></div>
@@ -95,10 +282,11 @@
             <div class="info">
                 <span id="sunInfo">Sun: Az --°, El --°</span>
                 <span id="windowInfo" style="margin-left: 20px;"></span>
+                <span id="hitPointsInfo" style="margin-left: 20px;"></span>
             </div>
 
             <div class="slider-container">
-                <input type="range" id="timeSlider" min="0" max="135" value="0">
+                <input type="range" id="timeSlider" min="0" max="137" value="0">
             </div>
 
             <div class="legend">
@@ -117,14 +305,262 @@
     </div>
 
     <script>
-        const config = {"plant": {"center_x": 5.5, "center_y": 10, "radius": 0.3, "z_min": 0.0, "z_max": 1.2}, "windows": [{"id": "window_1a", "center": [2.0, 0.0, 4.75], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 210}, {"id": "window_1b", "center": [5.0, 0.0, 4.75], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 210}, {"id": "window_1c", "center": [8.0, 0.0, 4.75], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 210}, {"id": "window_1d", "center": [11.0, 0.0, 4.75], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 210}, {"id": "window_2a", "center": [0.0, 2.0, 4.75], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 300}, {"id": "window_2b", "center": [0.0, 5.0, 4.75], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 300}, {"id": "window_2c", "center": [0.0, 8.0, 4.75], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 300}, {"id": "window_2d", "center": [0.0, 11.0, 4.75], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 300}]};
-        const results = [{"timestamp": "07:00", "azimuth": 109.4, "elevation": -4.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "07:05", "azimuth": 110.0, "elevation": -3.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "07:10", "azimuth": 110.6, "elevation": -2.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "07:15", "azimuth": 111.1, "elevation": -1.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "07:20", "azimuth": 111.7, "elevation": 0.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.9291311563845823, -0.3697461941174565, 0.0017453283658983088]}, {"timestamp": "07:25", "azimuth": 112.3, "elevation": 1.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.9250392134497467, -0.3793862303584364, 0.01919744239968967]}, {"timestamp": "07:30", "azimuth": 112.9, "elevation": 2.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.9205667317163321, -0.38886261207441836, 0.036643708706556276]}, {"timestamp": "07:35", "azimuth": 113.5, "elevation": 3.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.9157181131656298, -0.39816556758029237, 0.05407881298477529]}, {"timestamp": "07:40", "azimuth": 114.2, "elevation": 4.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.9097858028019354, -0.4088739518163662, 0.07149744433268591]}, {"timestamp": "07:45", "azimuth": 114.8, "elevation": 5.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.9041836468738202, -0.4177914990884563, 0.08889429686644151]}, {"timestamp": "07:50", "azimuth": 115.4, "elevation": 6.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8982205579686608, -0.42650647871458586, 0.1062640713362332]}, {"timestamp": "07:55", "azimuth": 116.1, "elevation": 7.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8911414445291392, -0.4365656889748534, 0.1236014767404927]}, {"timestamp": "08:00", "azimuth": 116.7, "elevation": 8.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8844588095716449, -0.4448364384912506, 0.14090123193758267]}, {"timestamp": "08:05", "azimuth": 117.4, "elevation": 9.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8766411691295606, -0.45440762135937307, 0.15815806725448353]}, {"timestamp": "08:10", "azimuth": 118.1, "elevation": 10.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8684567047352777, -0.46371269486625083, 0.1753667260919871]}, {"timestamp": "08:15", "azimuth": 118.8, "elevation": 11.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8602064581678311, -0.47290250222403035, 0.1908089953765448]}, {"timestamp": "08:20", "azimuth": 119.5, "elevation": 12.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8513363357686146, -0.4816629238600052, 0.20791169081775934]}, {"timestamp": "08:25", "azimuth": 120.2, "elevation": 12.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8424615380617748, -0.4903243238792926, 0.22325011601095138]}, {"timestamp": "08:30", "azimuth": 120.9, "elevation": 13.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8329377462497781, -0.49850295734316585, 0.24022804247726373]}, {"timestamp": "08:35", "azimuth": 121.7, "elevation": 14.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8225840798756806, -0.5080382823052702, 0.25544575793579055]}, {"timestamp": "08:40", "azimuth": 122.4, "elevation": 15.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8124275223572928, -0.5155821835439182, 0.27228024704057435]}, {"timestamp": "08:45", "azimuth": 123.2, "elevation": 16.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8014716823147898, -0.5244683728111771, 0.28736051984971195]}, {"timestamp": "08:50", "azimuth": 124.0, "elevation": 17.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.790230877409184, -0.533017457084358, 0.3023698907504445]}, {"timestamp": "08:55", "azimuth": 124.8, "elevation": 18.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7787152194753542, -0.5412211765822708, 0.31730465640509214]}, {"timestamp": "09:00", "azimuth": 125.6, "elevation": 19.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7669350610139946, -0.5490715751641104, 0.3321611318837033]}, {"timestamp": "09:05", "azimuth": 126.4, "elevation": 20.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7549009860778629, -0.5565610073353239, 0.34693565157325584]}, {"timestamp": "09:10", "azimuth": 127.2, "elevation": 21.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7426238009541991, -0.5636821449800233, 0.3616245700820923]}, {"timestamp": "09:15", "azimuth": 128.1, "elevation": 22.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7291178284829372, -0.5717014045929637, 0.37622426313936563]}, {"timestamp": "09:20", "azimuth": 129.0, "elevation": 22.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7158955176885022, -0.5797207596600227, 0.38912395014020623]}, {"timestamp": "09:25", "azimuth": 129.9, "elevation": 23.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7019251724908868, -0.5869005418429092, 0.40354529635239006]}, {"timestamp": "09:30", "azimuth": 130.8, "elevation": 24.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.688287238968672, -0.5941136075431489, 0.4162807922604012]}, {"timestamp": "09:35", "azimuth": 131.7, "elevation": 25.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.6744646210576966, -0.6009260572432544, 0.4289351334031458]}, {"timestamp": "09:40", "azimuth": 132.7, "elevation": 26.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.6594082714941223, -0.6084844397647057, 0.4415058527917452]}, {"timestamp": "09:45", "azimuth": 133.6, "elevation": 27.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.6446670637907083, -0.6139081481435757, 0.4555449072335156]}, {"timestamp": "09:50", "azimuth": 134.6, "elevation": 27.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.6298446941412559, -0.6211112323687091, 0.4663866403398912]}, {"timestamp": "09:55", "azimuth": 135.6, "elevation": 28.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.6142925015018051, -0.6272948491260109, 0.4786918579406068]}, {"timestamp": "10:00", "azimuth": 136.6, "elevation": 29.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.5986001288610057, -0.6330018881600216, 0.49090375361514077]}, {"timestamp": "10:05", "azimuth": 137.7, "elevation": 30.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.5822577321241681, -0.63989289251827, 0.5015107371594574]}, {"timestamp": "10:10", "azimuth": 138.8, "elevation": 30.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.5651983094978938, -0.6456208278666744, 0.51354125205817]}, {"timestamp": "10:15", "azimuth": 139.9, "elevation": 31.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.5486174443857573, -0.6515041596646609, 0.5239859059700791]}, {"timestamp": "10:20", "azimuth": 141.0, "elevation": 32.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.531940507422681, -0.6568918200620812, 0.5343523493898262]}, {"timestamp": "10:25", "azimuth": 142.1, "elevation": 33.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.5151829176474493, -0.6617815975850051, 0.5446390350150271]}, {"timestamp": "10:30", "azimuth": 143.3, "elevation": 33.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.49777467889840643, -0.667815964374647, 0.5533915492433441]}, {"timestamp": "10:35", "azimuth": 144.5, "elevation": 34.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.47971772132145657, -0.67253944123669, 0.5635260489375714]}, {"timestamp": "10:40", "azimuth": 145.7, "elevation": 34.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.4621769461398844, -0.6775260658868245, 0.5721458734455162]}, {"timestamp": "10:45", "azimuth": 147.0, "elevation": 35.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.44339909030834446, -0.6827747241530775, 0.5807029557109398]}, {"timestamp": "10:50", "azimuth": 148.2, "elevation": 36.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.42577495202275495, -0.6867046983322406, 0.5891963573533421]}, {"timestamp": "10:55", "azimuth": 149.5, "elevation": 36.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.4069318979412387, -0.6908332752122093, 0.5976251469755212]}, {"timestamp": "11:00", "azimuth": 150.8, "elevation": 37.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.38859481430108705, -0.6953085506492327, 0.6045991148623748]}, {"timestamp": "11:05", "azimuth": 152.2, "elevation": 37.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.36851774156962347, -0.6989560914183749, 0.6129070536529764]}, {"timestamp": "11:10", "azimuth": 153.5, "elevation": 38.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.3501655003121148, -0.7023233401633788, 0.61977903179514]}, {"timestamp": "11:15", "azimuth": 154.9, "elevation": 38.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.3310581282858691, -0.7067334266851457, 0.6252426563357052]}, {"timestamp": "11:20", "azimuth": 156.3, "elevation": 39.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.31148721426643455, -0.7095876802210693, 0.6320293026648509]}, {"timestamp": "11:25", "azimuth": 157.7, "elevation": 39.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.2923759959699411, -0.7128863403611035, 0.6374239897486897]}, {"timestamp": "11:30", "azimuth": 159.2, "elevation": 40.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.2720277152656133, -0.7161180146881069, 0.6427876096865393]}, {"timestamp": "11:35", "azimuth": 160.6, "elevation": 40.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.2529534262042025, -0.7183001865637183, 0.6481199010631309]}, {"timestamp": "11:40", "azimuth": 162.1, "elevation": 40.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.23266743999630074, -0.7203522587226152, 0.6534206039901054]}, {"timestamp": "11:45", "azimuth": 163.6, "elevation": 41.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.21276218600590455, -0.7229038929367728, 0.6573752457940958]}, {"timestamp": "11:50", "azimuth": 165.2, "elevation": 41.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.1916126907177793, -0.7252249261698365, 0.6613118653236518]}, {"timestamp": "11:55", "azimuth": 166.7, "elevation": 41.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.1720307541889538, -0.7277413027762202, 0.6639262126522416]}, {"timestamp": "12:00", "azimuth": 168.2, "elevation": 41.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.15220877254452933, -0.728582299684462, 0.6678325554710466]}, {"timestamp": "12:05", "azimuth": 169.8, "elevation": 42.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.13139259912257123, -0.7302493639074864, 0.6704266189587991]}, {"timestamp": "12:10", "azimuth": 171.4, "elevation": 42.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.11060098980927344, -0.7313149647808844, 0.6730125135097732]}, {"timestamp": "12:15", "azimuth": 173.0, "elevation": 42.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.08999506749610103, -0.7329510064972026, 0.6743023875837234]}, {"timestamp": "12:20", "azimuth": 174.6, "elevation": 42.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.0692728553075097, -0.7328302621915272, 0.6768759696826607]}, {"timestamp": "12:25", "azimuth": 176.2, "elevation": 42.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.048784025036503816, -0.7344787543335719, 0.6768759696826607]}, {"timestamp": "12:30", "azimuth": 177.8, "elevation": 42.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.02821176117424863, -0.7343729016622799, 0.6781596698680706]}, {"timestamp": "12:35", "azimuth": 179.4, "elevation": 42.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.007695866984288496, -0.7348742993164135, 0.6781596698680706]}, {"timestamp": "12:40", "azimuth": 181.0, "elevation": 42.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.012826028211248858, -0.7348026640974799, 0.6781596698680706]}, {"timestamp": "12:45", "azimuth": 182.6, "elevation": 42.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.03333792205580277, -0.7341580518644679, 0.6781596698680706]}, {"timestamp": "12:50", "azimuth": 184.2, "elevation": 42.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.0539104235715504, -0.7341202816272642, 0.6768759696826607]}, {"timestamp": "12:55", "azimuth": 185.8, "elevation": 42.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.07450651765493531, -0.7335029994490575, 0.6755902076156602]}, {"timestamp": "13:00", "azimuth": 187.4, "elevation": 42.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.09510979614179792, -0.7323048660064713, 0.6743023875837234]}, {"timestamp": "13:05", "azimuth": 189.0, "elevation": 42.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.1157037946700989, -0.7305250088519878, 0.6730125135097732]}, {"timestamp": "13:10", "azimuth": 190.6, "elevation": 42.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.13648745806947346, -0.7293142823099017, 0.6704266189587991]}, {"timestamp": "13:15", "azimuth": 192.1, "elevation": 41.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.15602151667369607, -0.7277753528307007, 0.6678325554710466]}, {"timestamp": "13:20", "azimuth": 193.7, "elevation": 41.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.17710711338508178, -0.7265225767597688, 0.6639262126522416]}, {"timestamp": "13:25", "azimuth": 195.2, "elevation": 41.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.1969733261056264, -0.724982280536337, 0.6600016679609367]}, {"timestamp": "13:30", "azimuth": 196.7, "elevation": 41.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.21687373730837364, -0.7228778130126359, 0.6560590289905073]}, {"timestamp": "13:35", "azimuth": 198.2, "elevation": 40.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.23679182611761895, -0.7202064306889643, 0.6520984038303923]}, {"timestamp": "13:40", "azimuth": 199.7, "elevation": 40.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.2570918776898683, -0.7180297678694867, 0.6467897795104595]}, {"timestamp": "13:45", "azimuth": 201.2, "elevation": 40.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.2770204924066762, -0.7142014671087058, 0.6427876096865393]}, {"timestamp": "13:50", "azimuth": 202.6, "elevation": 39.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.2965317182452203, -0.7123716991590905, 0.636078220277764]}, {"timestamp": "13:55", "azimuth": 204.0, "elevation": 39.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.31564651048128284, -0.7089536700955038, 0.6306758074312863]}, {"timestamp": "14:00", "azimuth": 205.4, "elevation": 38.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.3347540208835378, -0.7049903305723952, 0.6252426563357052]}, {"timestamp": "14:05", "azimuth": 206.8, "elevation": 38.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.35432522332876193, -0.7014447181812106, 0.6184083953575542]}, {"timestamp": "14:10", "azimuth": 208.2, "elevation": 37.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.3738932856861825, -0.6973080309593082, 0.6115270401858311]}, {"timestamp": "14:15", "azimuth": 209.5, "elevation": 37.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.39274911771342924, -0.6941817154431613, 0.6032079877452825]}, {"timestamp": "14:20", "azimuth": 210.8, "elevation": 36.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.4110769599650174, -0.689588015744296, 0.5962248749656158]}, {"timestamp": "14:25", "azimuth": 212.1, "elevation": 36.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.42991048161683565, -0.6853360307057074, 0.5877852522924731]}, {"timestamp": "14:30", "azimuth": 213.3, "elevation": 35.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.44752375943949635, -0.6812898121258172, 0.5792811723426788]}, {"timestamp": "14:35", "azimuth": 214.6, "elevation": 34.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.4662844421618748, -0.6759177780312461, 0.5707135676844316]}, {"timestamp": "14:40", "azimuth": 215.8, "elevation": 34.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.4838071297547387, -0.6708151291830116, 0.5620833778521306]}, {"timestamp": "14:45", "azimuth": 217.0, "elevation": 33.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.5018450153135178, -0.665970828827819, 0.5519369853120581]}, {"timestamp": "14:50", "azimuth": 218.1, "elevation": 32.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.5186597498020462, -0.6614712985818432, 0.5417082102827397]}, {"timestamp": "14:55", "azimuth": 219.3, "elevation": 32.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.5359625659733462, -0.6548182971452903, 0.53287627607073]}, {"timestamp": "15:00", "azimuth": 220.4, "elevation": 31.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.552613058963626, -0.6493181477000606, 0.5224985647159488]}, {"timestamp": "15:05", "azimuth": 221.5, "elevation": 30.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.5697553536639317, -0.643991277845897, 0.5105429179116057]}, {"timestamp": "15:10", "azimuth": 222.6, "elevation": 30.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.5861917849564096, -0.6374787770974172, 0.49999999999999994]}, {"timestamp": "15:15", "azimuth": 223.6, "elevation": 29.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.6013960137605365, -0.6315280283195868, 0.48938245174884626]}, {"timestamp": "15:20", "azimuth": 224.7, "elevation": 28.5, "is_hit": true, "window_id": "window_2b", "hit_points": [[5.5, 10.3, 0.0], [5.5, 10.3, 0.6], [5.287867965644036, 10.212132034355964, 0.0], [5.287867965644036, 10.212132034355964, 0.6], [5.287867965644036, 10.212132034355964, 1.2], [5.2, 10.0, 0.0], [5.2, 10.0, 0.6], [5.2, 10.0, 1.2]], "sun_direction": [-0.618155301785648, -0.6246627413107075, 0.4771587602596084]}, {"timestamp": "15:25", "azimuth": 225.7, "elevation": 27.7, "is_hit": true, "window_id": "window_2b", "hit_points": [[5.5, 10.3, 0.0], [5.5, 10.3, 0.6], [5.5, 10.3, 1.2], [5.287867965644036, 10.212132034355964, 0.6], [5.287867965644036, 10.212132034355964, 1.2], [5.2, 10.0, 0.6], [5.2, 10.0, 1.2]], "sun_direction": [-0.63366978442004, -0.6183724418500638, 0.4648420457246196]}, {"timestamp": "15:30", "azimuth": 226.6, "elevation": 26.9, "is_hit": true, "window_id": "window_2b", "hit_points": [[5.712132034355964, 10.212132034355964, 0.0], [5.712132034355964, 10.212132034355964, 0.6], [5.712132034355964, 10.212132034355964, 1.2], [5.5, 10.3, 0.6], [5.5, 10.3, 1.2], [5.287867965644036, 10.212132034355964, 0.6], [5.287867965644036, 10.212132034355964, 1.2], [5.2, 10.0, 0.6], [5.2, 10.0, 1.2], [5.287867965644035, 9.787867965644036, 0.6], [5.287867965644035, 9.787867965644036, 1.2], [5.5, 10.0, 1.2], [5.5, 10.0, 0.6]], "sun_direction": [-0.6479574966456375, -0.6127429447579803, 0.4524347093117827]}, {"timestamp": "15:35", "azimuth": 227.6, "elevation": 26.1, "is_hit": true, "window_id": "window_2b", "hit_points": [[5.8, 10.0, 0.0], [5.8, 10.0, 0.6], [5.8, 10.0, 1.2], [5.712132034355964, 10.212132034355964, 0.6], [5.712132034355964, 10.212132034355964, 1.2], [5.5, 10.3, 0.6], [5.5, 10.3, 1.2], [5.2, 10.0, 1.2], [5.287867965644035, 9.787867965644036, 0.6], [5.287867965644035, 9.787867965644036, 1.2], [5.5, 10.0, 1.2], [5.5, 10.0, 0.6]], "sun_direction": [-0.6631532593497419, -0.6055421384514064, 0.43993916985591514]}, {"timestamp": "15:40", "azimuth": 228.6, "elevation": 25.3, "is_hit": true, "window_id": "window_2b", "hit_points": [[5.8, 10.0, 0.6], [5.8, 10.0, 1.2], [5.712132034355964, 10.212132034355964, 0.6], [5.712132034355964, 10.212132034355964, 1.2], [5.287867965644035, 9.787867965644036, 1.2], [5.5, 9.7, 0.6], [5.5, 9.7, 1.2], [5.712132034355964, 9.787867965644036, 0.6], [5.712132034355964, 9.787867965644036, 1.2], [5.5, 10.0, 1.2]], "sun_direction": [-0.6781623283602795, -0.5978805173227325, 0.4273578633871924]}, {"timestamp": "15:45", "azimuth": 229.5, "elevation": 24.5, "is_hit": true, "window_id": "window_2b", "hit_points": [[5.8, 10.0, 0.6], [5.8, 10.0, 1.2], [5.287867965644035, 9.787867965644036, 1.2], [5.5, 9.7, 1.2], [5.712132034355964, 9.787867965644036, 0.6], [5.712132034355964, 9.787867965644036, 1.2], [5.5, 10.0, 1.2]], "sun_direction": [-0.6919399788395093, -0.5909725714268244, 0.414693242656239]}, {"timestamp": "15:50", "azimuth": 230.4, "elevation": 23.6, "is_hit": true, "window_id": "window_2b", "hit_points": [[5.8, 10.0, 1.2], [5.5, 9.7, 1.2], [5.712132034355964, 9.787867965644036, 1.2]], "sun_direction": [-0.7060696183138749, -0.5841115871345622, 0.40034903255689497]}, {"timestamp": "15:55", "azimuth": 231.3, "elevation": 22.8, "is_hit": true, "window_id": "window_2b", "hit_points": [[5.712132034355964, 9.787867965644036, 1.2]], "sun_direction": [-0.71945003490441, -0.5763881656771989, 0.387515586452103]}, {"timestamp": "16:00", "azimuth": 232.2, "elevation": 21.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.7331344666821153, -0.568677384649602, 0.3729877825758089]}, {"timestamp": "16:05", "azimuth": 233.0, "elevation": 21.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.7455904800857619, -0.5618427259867126, 0.35836794954530027]}, {"timestamp": "16:10", "azimuth": 233.9, "elevation": 20.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.7587786557193118, -0.5533109125456638, 0.3436596945856161]}, {"timestamp": "16:15", "azimuth": 234.7, "elevation": 19.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.7702714341404988, -0.5453825757727767, 0.3305143927132231]}, {"timestamp": "16:20", "azimuth": 235.5, "elevation": 18.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.7819935709514383, -0.5374492910638031, 0.31564903694710245]}, {"timestamp": "16:25", "azimuth": 236.3, "elevation": 17.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.7938841748122625, -0.5294549287234044, 0.29904079225608665]}, {"timestamp": "16:30", "azimuth": 237.1, "elevation": 16.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8050440959029542, -0.5208063820888786, 0.28401534470392265]}, {"timestamp": "16:35", "azimuth": 237.8, "elevation": 15.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8150215818940618, -0.5132464818458617, 0.2689198206152657]}, {"timestamp": "16:40", "azimuth": 238.6, "elevation": 14.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.825612161560564, -0.5039558157650211, 0.2537579445848056]}, {"timestamp": "16:45", "azimuth": 239.3, "elevation": 13.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8353887177979196, -0.49601752261805077, 0.23683814606561868]}, {"timestamp": "16:50", "azimuth": 240.0, "elevation": 12.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8445041133126099, -0.4875746771527821, 0.2215484976194673]}, {"timestamp": "16:55", "azimuth": 240.8, "elevation": 11.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8544749543695246, -0.4775499106232966, 0.20449605184179034]}, {"timestamp": "17:00", "azimuth": 241.5, "elevation": 10.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8629621206451489, -0.46855020197635633, 0.1890954429898913]}, {"timestamp": "17:05", "azimuth": 242.2, "elevation": 9.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8714089684234639, -0.45944182899281927, 0.17192910027940955]}, {"timestamp": "17:10", "azimuth": 242.8, "elevation": 8.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8787076807699672, -0.4515944066603734, 0.1547103862994681]}, {"timestamp": "17:15", "azimuth": 243.5, "elevation": 7.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8864409541439404, -0.4419631563615038, 0.13744454603714665]}, {"timestamp": "17:20", "azimuth": 244.2, "elevation": 6.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8937980703864256, -0.43207886933790274, 0.1201368388346471]}, {"timestamp": "17:25", "azimuth": 244.8, "elevation": 6.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8998703151989941, -0.4234468280558562, 0.10452846326765347]}, {"timestamp": "17:30", "azimuth": 245.4, "elevation": 5.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.9057761911462578, -0.4146967181672431, 0.08715574274765817]}, {"timestamp": "17:35", "azimuth": 246.1, "elevation": 4.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.9120268785495562, -0.40415468223681167, 0.0697564737441253]}, {"timestamp": "17:40", "azimuth": 246.7, "elevation": 2.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.9172701795831097, -0.3950389500567808, 0.05059294007671331]}, {"timestamp": "17:45", "azimuth": 247.3, "elevation": 1.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.9220308927215418, -0.3856938773342687, 0.033155178388526274]}, {"timestamp": "17:50", "azimuth": 247.9, "elevation": 0.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.9264143273339761, -0.37617784928568315, 0.015707317311820675]}, {"timestamp": "17:55", "azimuth": 248.5, "elevation": -0.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "18:00", "azimuth": 249.1, "elevation": -1.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "18:05", "azimuth": 249.7, "elevation": -2.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "18:10", "azimuth": 250.3, "elevation": -3.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "18:15", "azimuth": 250.8, "elevation": -4.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}];
+        // Original config from file (immutable)
+        const originalConfig = {"plant": {"center_x": 7.38, "center_y": 4.98, "radius": 0.3, "z_min": 0.0, "z_max": 1.2}, "walls": [{"id": "wall_1", "normal_azimuth": 210, "thickness": 0.3}, {"id": "wall_2", "normal_azimuth": 300, "thickness": 0.3}], "windows": [{"id": "window_1a", "wall_id": "wall_1", "center": [2.0, 0.0, 4.95], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 210, "wall_thickness": 0.3}, {"id": "window_1b", "wall_id": "wall_1", "center": [5.0, 0.0, 4.95], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 210, "wall_thickness": 0.3}, {"id": "window_1c", "wall_id": "wall_1", "center": [8.0, 0.0, 4.95], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 210, "wall_thickness": 0.3}, {"id": "window_1d", "wall_id": "wall_1", "center": [11.0, 0.0, 4.95], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 210, "wall_thickness": 0.3}, {"id": "window_2a", "wall_id": "wall_2", "center": [0.0, 2.0, 4.95], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 300, "wall_thickness": 0.3}, {"id": "window_2b", "wall_id": "wall_2", "center": [0.0, 5.0, 4.95], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 300, "wall_thickness": 0.3}, {"id": "window_2c", "wall_id": "wall_2", "center": [0.0, 8.0, 4.95], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 300, "wall_thickness": 0.3}, {"id": "window_2d", "wall_id": "wall_2", "center": [0.0, 11.0, 4.95], "width": 1.5, "height": 1.5, "wall_normal_azimuth": 300, "wall_thickness": 0.3}]};
+        const sunPositions = [{"timestamp": "06:55", "azimuth": 108.1, "elevation": -4.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "07:00", "azimuth": 108.7, "elevation": -3.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "07:05", "azimuth": 109.2, "elevation": -2.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "07:10", "azimuth": 109.8, "elevation": -1.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "07:15", "azimuth": 110.4, "elevation": -0.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "07:20", "azimuth": 111.0, "elevation": 0.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.9335676292077081, -0.3583630371261177, 0.00523596383141958]}, {"timestamp": "07:25", "azimuth": 111.6, "elevation": 1.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.9295371700888095, -0.36802980085673087, 0.022687333572781358]}, {"timestamp": "07:30", "azimuth": 112.2, "elevation": 2.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.925058439000647, -0.3775093562528463, 0.04187565372919962]}, {"timestamp": "07:35", "azimuth": 112.8, "elevation": 3.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.9202405138109648, -0.3868334923377241, 0.05930637357596162]}, {"timestamp": "07:40", "azimuth": 113.4, "elevation": 4.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.9150497754072003, -0.395977397398524, 0.07671902812681865]}, {"timestamp": "07:45", "azimuth": 114.1, "elevation": 5.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.9087829868429642, -0.40651827534457163, 0.09410831331851433]}, {"timestamp": "07:50", "azimuth": 114.7, "elevation": 6.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.902846281121116, -0.41526289241702363, 0.11146893220632548]}, {"timestamp": "07:55", "azimuth": 115.3, "elevation": 7.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8965525929123721, -0.42379846913873104, 0.1287955965775628]}, {"timestamp": "08:00", "azimuth": 116.0, "elevation": 8.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.889152083035621, -0.4336684470876913, 0.14608302856241162]}, {"timestamp": "08:05", "azimuth": 116.7, "elevation": 9.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.881375341700414, -0.4432856157155638, 0.16332596224162227]}, {"timestamp": "08:10", "azimuth": 117.3, "elevation": 10.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8740185585125487, -0.45111461689204185, 0.18051914525055998]}, {"timestamp": "08:15", "azimuth": 118.0, "elevation": 11.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8658313522859105, -0.4603706962386312, 0.19594614424251772]}, {"timestamp": "08:20", "azimuth": 118.7, "elevation": 12.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8570117773814149, -0.4692002429166917, 0.21303038627497659]}, {"timestamp": "08:25", "azimuth": 119.5, "elevation": 13.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8470117750899098, -0.4792162051503728, 0.23004973718810443]}, {"timestamp": "08:30", "azimuth": 120.2, "elevation": 14.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.837867187785561, -0.4876503481651823, 0.24530738587880255]}, {"timestamp": "08:35", "azimuth": 120.9, "elevation": 15.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8280467873511458, -0.4955757788280971, 0.2621891786408647]}, {"timestamp": "08:40", "azimuth": 121.7, "elevation": 16.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.817441578060324, -0.5048622084510079, 0.2773146533023778]}, {"timestamp": "08:45", "azimuth": 122.4, "elevation": 17.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.8074348107499804, -0.512413712410845, 0.29237170472273677]}, {"timestamp": "08:50", "azimuth": 123.2, "elevation": 18.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.795810152918386, -0.5207635717861693, 0.3090169943749474]}, {"timestamp": "08:55", "azimuth": 124.0, "elevation": 18.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7843403093122537, -0.5290442187339383, 0.32391741819814934]}, {"timestamp": "09:00", "azimuth": 124.8, "elevation": 19.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7726034993158737, -0.5369734204155374, 0.3387379202452914]}, {"timestamp": "09:05", "azimuth": 125.7, "elevation": 20.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7596586877662062, -0.54587014290631, 0.35347484377925714]}, {"timestamp": "09:10", "azimuth": 126.5, "elevation": 21.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7474072070218383, -0.5530522403919187, 0.368124552684678]}, {"timestamp": "09:15", "azimuth": 127.4, "elevation": 22.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7339434082403933, -0.5611421068622005, 0.3826834323650898]}, {"timestamp": "09:20", "azimuth": 128.2, "elevation": 23.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7217674197904691, -0.5679749529083307, 0.39554550256296495]}, {"timestamp": "09:25", "azimuth": 129.1, "elevation": 24.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.7078475389686131, -0.5752520907412666, 0.40992303384157275]}, {"timestamp": "09:30", "azimuth": 130.0, "elevation": 25.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.6942720440148838, -0.5825634160695854, 0.42261826174069944]}, {"timestamp": "09:35", "azimuth": 131.0, "elevation": 25.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.6789048737413934, -0.5901630029821928, 0.43680178836770217]}, {"timestamp": "09:40", "azimuth": 131.9, "elevation": 26.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.6649466394049656, -0.5966224972516966, 0.4493189986158966]}, {"timestamp": "09:45", "azimuth": 132.9, "elevation": 27.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.6497734869921826, -0.6038067851370528, 0.4617486132350339]}, {"timestamp": "09:50", "azimuth": 133.9, "elevation": 28.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.6344289358803819, -0.6105246066787023, 0.4740882090471163]}, {"timestamp": "09:55", "azimuth": 134.9, "elevation": 29.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.6189276746731422, -0.6167709714894466, 0.4863353804234905]}, {"timestamp": "10:00", "azimuth": 135.9, "elevation": 29.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.6032845409085605, -0.6225413528560693, 0.49848773975383026]}, {"timestamp": "10:05", "azimuth": 137.0, "elevation": 30.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.5870246508535604, -0.6295068675885221, 0.5090414157503713]}, {"timestamp": "10:10", "azimuth": 138.1, "elevation": 31.4, "is_hit": true, "window_id": "window_1d", "hit_points": [[7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2]], "sun_direction": [0.5700290101687314, -0.6353077137068331, 0.5210096318405764]}, {"timestamp": "10:15", "azimuth": 139.2, "elevation": 32.1, "is_hit": true, "window_id": "window_1d", "hit_points": [[7.08, 4.98, 0.6], [7.08, 4.98, 1.2], [7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.680000000000001, 0.6], [7.38, 4.680000000000001, 1.2]], "sun_direction": [0.5535269175227748, -0.6412671060204936, 0.5313985795180829]}, {"timestamp": "10:20", "azimuth": 140.3, "elevation": 32.8, "is_hit": true, "window_id": "window_1d", "hit_points": [[7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.08, 4.98, 0.6], [7.08, 4.98, 1.2], [7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.680000000000001, 0.6], [7.38, 4.680000000000001, 1.2]], "sun_direction": [0.5369268947914368, -0.6467315707168596, 0.5417082102827397]}, {"timestamp": "10:25", "azimuth": 141.5, "elevation": 33.5, "is_hit": true, "window_id": "window_1d", "hit_points": [[7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.08, 4.98, 1.2], [7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.680000000000001, 0.6], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 0.6], [7.592132034355964, 4.767867965644036, 1.2], [7.38, 4.98, 1.2], [7.38, 4.98, 0.6]], "sun_direction": [0.519106129521406, -0.6526058462333465, 0.5519369853120581]}, {"timestamp": "10:30", "azimuth": 142.6, "elevation": 34.2, "is_hit": true, "window_id": "window_1d", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.38, 5.28, 0.0], [7.38, 5.28, 0.6], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.680000000000001, 0.6], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 0.6], [7.592132034355964, 4.767867965644036, 1.2], [7.38, 4.98, 0.6]], "sun_direction": [0.5023487583188304, -0.6570449005645416, 0.5620833778521306]}, {"timestamp": "10:35", "azimuth": 143.8, "elevation": 34.8, "is_hit": true, "window_id": "window_1d", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 5.28, 0.0], [7.38, 5.28, 0.6], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.680000000000001, 0.6], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 0.6], [7.592132034355964, 4.767867965644036, 1.2], [7.38, 4.98, 0.6]], "sun_direction": [0.4849753768759849, -0.66263482211917, 0.5707135676844316]}, {"timestamp": "10:40", "azimuth": 145.1, "elevation": 35.5, "is_hit": true, "window_id": "window_1d", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 5.28, 0.0], [7.38, 5.28, 0.6], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.680000000000001, 0.6], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 0.6], [7.592132034355964, 4.767867965644036, 1.2], [7.38, 4.98, 0.6]], "sun_direction": [0.46579283433552543, -0.6676983695578836, 0.5807029557109398]}, {"timestamp": "10:45", "azimuth": 146.3, "elevation": 36.1, "is_hit": true, "window_id": "window_1d", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 5.28, 0.0], [7.38, 5.28, 0.6], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.680000000000001, 0.6], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 0.6], [7.592132034355964, 4.767867965644036, 1.2], [7.38, 4.98, 0.6]], "sun_direction": [0.4483086845151781, -0.6722105145486965, 0.5891963573533421]}, {"timestamp": "10:50", "azimuth": 147.6, "elevation": 36.7, "is_hit": true, "window_id": "window_1d", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 5.28, 0.0], [7.38, 5.28, 0.6], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.38, 4.680000000000001, 0.6], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.592132034355964, 4.767867965644036, 1.2], [7.38, 4.98, 0.6]], "sun_direction": [0.42961287374735097, -0.6769615664223705, 0.5976251469755212]}, {"timestamp": "10:55", "azimuth": 148.9, "elevation": 37.3, "is_hit": true, "window_id": "window_1d", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 5.28, 0.0], [7.38, 5.28, 0.6], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [0.4108885650911143, -0.6811377583284967, 0.605988400265711]}, {"timestamp": "11:00", "azimuth": 150.2, "elevation": 37.8, "is_hit": true, "window_id": "window_1d", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 5.28, 0.0], [7.38, 5.28, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6]], "sun_direction": [0.392686466326124, -0.6856692225459221, 0.6129070536529764]}, {"timestamp": "11:05", "azimuth": 151.5, "elevation": 38.4, "is_hit": true, "window_id": "window_1d", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6]], "sun_direction": [0.37394619852116423, -0.6887232213791676, 0.6211477802783103]}, {"timestamp": "11:10", "azimuth": 152.9, "elevation": 38.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.3545247029004053, -0.6928020159187426, 0.6279630576493378]}, {"timestamp": "11:15", "azimuth": 154.3, "elevation": 39.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.33510293411292297, -0.6962924666825687, 0.6347305132022676]}, {"timestamp": "11:20", "azimuth": 155.7, "elevation": 39.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.31615970143846195, -0.7002161207881624, 0.6401096994849554]}, {"timestamp": "11:25", "azimuth": 157.2, "elevation": 40.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.29554586505047065, -0.7030758300300047, 0.6467897795104595]}, {"timestamp": "11:30", "azimuth": 158.6, "elevation": 40.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.27662561868773516, -0.7058653829219013, 0.6520984038303923]}, {"timestamp": "11:35", "azimuth": 160.1, "elevation": 41.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.25649756852865196, -0.7085667107309246, 0.6573752457940958]}, {"timestamp": "11:40", "azimuth": 161.6, "elevation": 41.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [0.23677183673221555, -0.7117624000413377, 0.6613118653236518]}, {"timestamp": "11:45", "azimuth": 163.2, "elevation": 41.8, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6]], "sun_direction": [0.2154662677673141, -0.7136587094386132, 0.6665324702494524]}, {"timestamp": "11:50", "azimuth": 164.7, "elevation": 42.1, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.167867965644036, 5.192132034355964, 0.0], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6]], "sun_direction": [0.19578742815885866, -0.7156783017294942, 0.6704266189587991]}, {"timestamp": "11:55", "azimuth": 166.3, "elevation": 42.4, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.38, 5.28, 0.0], [7.167867965644036, 5.192132034355964, 0.0], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [0.1748943938260892, -0.7174456363426395, 0.6743023875837234]}, {"timestamp": "12:00", "azimuth": 167.8, "elevation": 42.6, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.38, 5.28, 0.0], [7.167867965644036, 5.192132034355964, 0.0], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [0.15555556710698215, -0.7194729926885254, 0.6768759696826607]}, {"timestamp": "12:05", "azimuth": 169.4, "elevation": 42.8, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.38, 5.28, 0.0], [7.167867965644036, 5.192132034355964, 0.0], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [0.1349705995601924, -0.72120902054659, 0.6794413042615165]}, {"timestamp": "12:10", "azimuth": 171.0, "elevation": 43.0, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.38, 5.28, 0.0], [7.167867965644036, 5.192132034355964, 0.0], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [0.11440892506798764, -0.7223495239403499, 0.6819983600624985]}, {"timestamp": "12:15", "azimuth": 172.6, "elevation": 43.2, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.38, 5.28, 0.0], [7.167867965644036, 5.192132034355964, 0.0], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [0.09388794925506785, -0.7228971660957971, 0.6845471059286887]}, {"timestamp": "12:20", "azimuth": 174.3, "elevation": 43.3, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.38, 5.28, 0.0], [7.167867965644036, 5.192132034355964, 0.0], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [0.07228220816075198, -0.7241743361728491, 0.6858183529273761]}, {"timestamp": "12:25", "azimuth": 175.9, "elevation": 43.4, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.38, 5.28, 0.0], [7.167867965644036, 5.192132034355964, 0.0], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [0.05194823209128702, -0.7247152086710833, 0.687087510804423]}, {"timestamp": "12:30", "azimuth": 177.5, "elevation": 43.5, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.38, 5.28, 0.0], [7.167867965644036, 5.192132034355964, 0.0], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [0.031640385674071986, -0.7246839753408848, 0.6883545756937539]}, {"timestamp": "12:35", "azimuth": 179.2, "elevation": 43.5, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.38, 5.28, 0.0], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [0.010127807781467733, -0.725303664426848, 0.6883545756937539]}, {"timestamp": "12:40", "azimuth": 180.8, "elevation": 43.5, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.38, 5.28, 0.0], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [-0.010127807781467879, -0.725303664426848, 0.6883545756937539]}, {"timestamp": "12:45", "azimuth": 182.4, "elevation": 43.5, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6]], "sun_direction": [-0.030375525984546497, -0.7247380944469762, 0.6883545756937539]}, {"timestamp": "12:50", "azimuth": 184.1, "elevation": 43.4, "is_hit": true, "window_id": "window_1c", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6]], "sun_direction": [-0.05194823209128684, -0.7247152086710833, 0.687087510804423]}, {"timestamp": "12:55", "azimuth": 185.7, "elevation": 43.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.07228220816075212, -0.7241743361728491, 0.6858183529273761]}, {"timestamp": "13:00", "azimuth": 187.3, "elevation": 43.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.09262611332596529, -0.7230599303617801, 0.6845471059286887]}, {"timestamp": "13:05", "azimuth": 188.9, "elevation": 43.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.11314801369904777, -0.7225481048816215, 0.6819983600624985]}, {"timestamp": "13:10", "azimuth": 190.5, "elevation": 42.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.13349534010605899, -0.7202764002338156, 0.6807208689589177]}, {"timestamp": "13:15", "azimuth": 192.1, "elevation": 42.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.15429961355972807, -0.7197433924125155, 0.6768759696826607]}, {"timestamp": "13:20", "azimuth": 193.7, "elevation": 42.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.174894393826089, -0.7174456363426396, 0.6743023875837234]}, {"timestamp": "13:25", "azimuth": 195.3, "elevation": 42.1, "is_hit": true, "window_id": "window_1b", "hit_points": [[7.167867965644036, 5.192132034355964, 0.0], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6]], "sun_direction": [-0.1957874281588585, -0.7156783017294943, 0.6704266189587991]}, {"timestamp": "13:30", "azimuth": 196.8, "elevation": 41.8, "is_hit": true, "window_id": "window_1b", "hit_points": [[7.167867965644036, 5.192132034355964, 0.0], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6]], "sun_direction": [-0.2154662677673142, -0.7136587094386131, 0.6665324702494524]}, {"timestamp": "13:35", "azimuth": 198.3, "elevation": 41.5, "is_hit": true, "window_id": "window_1b", "hit_points": [[7.38, 5.28, 0.0], [7.167867965644036, 5.192132034355964, 0.0], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [-0.23516644618137675, -0.7110776429427347, 0.6626200482157375]}, {"timestamp": "13:40", "azimuth": 199.8, "elevation": 41.1, "is_hit": true, "window_id": "window_1b", "hit_points": [[7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 5.28, 0.0], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [-0.25526049628124353, -0.7090133040045198, 0.6573752457940958]}, {"timestamp": "13:45", "azimuth": 201.3, "elevation": 40.7, "is_hit": true, "window_id": "window_1b", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 5.28, 0.0], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [-0.275393230487612, -0.7063471103667458, 0.6520984038303923]}, {"timestamp": "13:50", "azimuth": 202.8, "elevation": 40.3, "is_hit": true, "window_id": "window_1b", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 5.28, 0.0], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [-0.2955458650504704, -0.7030758300300048, 0.6467897795104595]}, {"timestamp": "13:55", "azimuth": 204.2, "elevation": 39.9, "is_hit": true, "window_id": "window_1b", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 5.28, 0.0], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [-0.3144786664896582, -0.6997467673970906, 0.6414496315691578]}, {"timestamp": "14:00", "azimuth": 205.6, "elevation": 39.4, "is_hit": true, "window_id": "window_1b", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 5.28, 0.0], [7.38, 5.28, 0.6], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [-0.3338871647290346, -0.6968762708251678, 0.6347305132022676]}, {"timestamp": "14:05", "azimuth": 207.0, "elevation": 38.9, "is_hit": true, "window_id": "window_1b", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 5.28, 0.0], [7.38, 5.28, 0.6], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.08, 4.98, 0.0], [7.08, 4.98, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [-0.3533149959182065, -0.6934197227415817, 0.6279630576493378]}, {"timestamp": "14:10", "azimuth": 208.4, "elevation": 38.4, "is_hit": true, "window_id": "window_1b", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 5.28, 0.0], [7.38, 5.28, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.0], [7.38, 4.680000000000001, 0.6], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [-0.37274358079415215, -0.6893748313015796, 0.6211477802783103]}, {"timestamp": "14:15", "azimuth": 209.8, "elevation": 37.9, "is_hit": true, "window_id": "window_1b", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.167867965644035, 4.767867965644037, 0.0], [7.167867965644035, 4.767867965644037, 0.6], [7.38, 4.680000000000001, 0.6], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.38, 4.98, 0.6]], "sun_direction": [-0.3921542432240997, -0.6847399086227814, 0.6142852000989432]}, {"timestamp": "14:20", "azimuth": 211.1, "elevation": 37.3, "is_hit": true, "window_id": "window_1b", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 5.192132034355964, 0.0], [7.592132034355964, 5.192132034355964, 0.6], [7.38, 4.680000000000001, 0.6], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6]], "sun_direction": [-0.41088856509111416, -0.6811377583284968, 0.605988400265711]}, {"timestamp": "14:25", "azimuth": 212.4, "elevation": 36.8, "is_hit": true, "window_id": "window_1b", "hit_points": [[7.68, 4.98, 0.0], [7.68, 4.98, 0.6], [7.592132034355964, 4.767867965644036, 0.0], [7.592132034355964, 4.767867965644036, 0.6], [7.592132034355964, 4.767867965644036, 1.2]], "sun_direction": [-0.429053324134598, -0.6760798573175285, 0.5990235985155858]}, {"timestamp": "14:30", "azimuth": 213.7, "elevation": 36.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.4477374323646863, -0.671353958083737, 0.5906056676199254]}, {"timestamp": "14:35", "azimuth": 214.9, "elevation": 35.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.4657928343355256, -0.6676983695578835, 0.5807029557109398]}, {"timestamp": "14:40", "azimuth": 216.1, "elevation": 34.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.48323049774133675, -0.6626744189660012, 0.5721458734455162]}, {"timestamp": "14:45", "azimuth": 217.3, "elevation": 34.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.5012012340954874, -0.6579206633656519, 0.5620833778521306]}, {"timestamp": "14:50", "azimuth": 218.5, "elevation": 33.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.5185056635084027, -0.6518509569953568, 0.5533915492433441]}, {"timestamp": "14:55", "azimuth": 219.7, "elevation": 32.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.5363221484113887, -0.6460031501813119, 0.5431744499506707]}, {"timestamp": "15:00", "azimuth": 220.8, "elevation": 32.2, "is_hit": true, "window_id": "window_1a", "hit_points": [[7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6]], "sun_direction": [-0.5529200497033725, -0.6405640428848713, 0.53287627607073]}, {"timestamp": "15:05", "azimuth": 221.9, "elevation": 31.4, "is_hit": true, "window_id": "window_1a", "hit_points": [[7.38, 5.28, 0.0], [7.38, 5.28, 0.6], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.08, 4.98, 0.6], [7.08, 4.98, 1.2]], "sun_direction": [-0.5700290101687313, -0.6353077137068333, 0.5210096318405764]}, {"timestamp": "15:10", "azimuth": 223.0, "elevation": 30.7, "is_hit": true, "window_id": "window_1a", "hit_points": [[7.38, 5.28, 0.0], [7.38, 5.28, 0.6], [7.167867965644036, 5.192132034355964, 0.0], [7.167867965644036, 5.192132034355964, 0.6], [7.167867965644036, 5.192132034355964, 1.2], [7.08, 4.98, 0.6], [7.08, 4.98, 1.2], [7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.98, 1.2], [7.38, 4.98, 0.6]], "sun_direction": [-0.5864178391250816, -0.6288561416780257, 0.5105429179116057]}, {"timestamp": "15:15", "azimuth": 224.1, "elevation": 29.9, "is_hit": true, "window_id": "window_1a", "hit_points": [[7.592132034355964, 5.192132034355964, 0.6], [7.592132034355964, 5.192132034355964, 1.2], [7.38, 5.28, 0.0], [7.38, 5.28, 0.6], [7.38, 5.28, 1.2], [7.167867965644036, 5.192132034355964, 0.6], [7.167867965644036, 5.192132034355964, 1.2], [7.08, 4.98, 0.6], [7.08, 4.98, 1.2], [7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.98, 1.2], [7.38, 4.98, 0.6]], "sun_direction": [-0.6032845409085608, -0.6225413528560692, 0.49848773975383026]}, {"timestamp": "15:20", "azimuth": 225.1, "elevation": 29.2, "is_hit": true, "window_id": "window_1a", "hit_points": [[7.68, 4.98, 0.6], [7.68, 4.98, 1.2], [7.592132034355964, 5.192132034355964, 0.6], [7.592132034355964, 5.192132034355964, 1.2], [7.38, 5.28, 0.6], [7.38, 5.28, 1.2], [7.167867965644036, 5.192132034355964, 0.6], [7.167867965644036, 5.192132034355964, 1.2], [7.08, 4.98, 0.6], [7.08, 4.98, 1.2], [7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.680000000000001, 0.6], [7.38, 4.680000000000001, 1.2], [7.38, 4.98, 1.2], [7.38, 4.98, 0.6]], "sun_direction": [-0.6183254825594554, -0.6161708777625375, 0.4878596591387327]}, {"timestamp": "15:25", "azimuth": 226.1, "elevation": 28.4, "is_hit": true, "window_id": "window_1a", "hit_points": [[7.68, 4.98, 0.6], [7.68, 4.98, 1.2], [7.592132034355964, 5.192132034355964, 0.6], [7.592132034355964, 5.192132034355964, 1.2], [7.38, 5.28, 0.6], [7.38, 5.28, 1.2], [7.167867965644036, 5.192132034355964, 0.6], [7.167867965644036, 5.192132034355964, 1.2], [7.08, 4.98, 0.6], [7.08, 4.98, 1.2], [7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.680000000000001, 0.6], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 0.6], [7.592132034355964, 4.767867965644036, 1.2], [7.38, 4.98, 1.2], [7.38, 4.98, 0.6]], "sun_direction": [-0.6338317570670566, -0.6099499286659216, 0.4756242090702752]}, {"timestamp": "15:30", "azimuth": 227.1, "elevation": 27.6, "is_hit": true, "window_id": "window_1a", "hit_points": [[7.68, 4.98, 0.6], [7.68, 4.98, 1.2], [7.592132034355964, 5.192132034355964, 0.6], [7.592132034355964, 5.192132034355964, 1.2], [7.38, 5.28, 0.6], [7.38, 5.28, 1.2], [7.167867965644036, 5.192132034355964, 0.6], [7.167867965644036, 5.192132034355964, 1.2], [7.08, 4.98, 0.6], [7.08, 4.98, 1.2], [7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 0.6], [7.592132034355964, 4.767867965644036, 1.2], [7.38, 4.98, 1.2], [7.38, 4.98, 0.6]], "sun_direction": [-0.6491821388457844, -0.6032572705287758, 0.4632960351198617]}, {"timestamp": "15:35", "azimuth": 228.1, "elevation": 26.8, "is_hit": true, "window_id": "window_1a", "hit_points": [[7.68, 4.98, 0.6], [7.68, 4.98, 1.2], [7.592132034355964, 5.192132034355964, 0.6], [7.592132034355964, 5.192132034355964, 1.2], [7.167867965644035, 4.767867965644037, 0.6], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 0.6], [7.592132034355964, 4.767867965644036, 1.2], [7.38, 4.98, 1.2], [7.38, 4.98, 0.6]], "sun_direction": [-0.6643619306761017, -0.5960978681140986, 0.45087754068943076]}, {"timestamp": "15:40", "azimuth": 229.0, "elevation": 25.9, "is_hit": true, "window_id": "window_1a", "hit_points": [[7.68, 4.98, 0.6], [7.68, 4.98, 1.2], [7.592132034355964, 5.192132034355964, 0.6], [7.592132034355964, 5.192132034355964, 1.2], [7.167867965644035, 4.767867965644037, 1.2], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 1.2], [7.38, 4.98, 1.2], [7.38, 4.98, 0.6]], "sun_direction": [-0.6789048737413933, -0.5901630029821929, 0.43680178836770217]}, {"timestamp": "15:45", "azimuth": 230.0, "elevation": 25.1, "is_hit": true, "window_id": "window_1a", "hit_points": [[7.68, 4.98, 0.6], [7.68, 4.98, 1.2], [7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 1.2]], "sun_direction": [-0.6937059463444101, -0.5820884037230807, 0.4241994227453902]}, {"timestamp": "15:50", "azimuth": 230.9, "elevation": 24.3, "is_hit": true, "window_id": "window_1a", "hit_points": [[7.38, 4.680000000000001, 1.2], [7.592132034355964, 4.767867965644036, 1.2]], "sun_direction": [-0.7072912382216143, -0.5747999973875796, 0.4115143586051088]}, {"timestamp": "15:55", "azimuth": 231.8, "elevation": 23.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.7212237988373676, -0.5675471654012032, 0.39714789063478056]}, {"timestamp": "16:00", "azimuth": 232.7, "elevation": 22.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.7349216676173469, -0.559860279944748, 0.3826834323650898]}, {"timestamp": "16:05", "azimuth": 233.5, "elevation": 21.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.7468895920505683, -0.5526692254613276, 0.3697467572738293]}, {"timestamp": "16:10", "azimuth": 234.4, "elevation": 20.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.7601074689239018, -0.5441834993229449, 0.35510696240813705]}, {"timestamp": "16:15", "azimuth": 235.2, "elevation": 19.9, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.772116851852417, -0.5366351916174287, 0.3403795502130501]}, {"timestamp": "16:20", "azimuth": 236.0, "elevation": 19.0, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.7838704247205585, -0.5287272775749066, 0.3255681544571567]}, {"timestamp": "16:25", "azimuth": 236.8, "elevation": 18.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.7953576436074653, -0.5204674579904888, 0.31067642963073183]}, {"timestamp": "16:30", "azimuth": 237.6, "elevation": 17.1, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8070027333939905, -0.5121395077827023, 0.294040325232304]}, {"timestamp": "16:35", "azimuth": 238.4, "elevation": 16.2, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8179079967785503, -0.5031803568867791, 0.2789911060392293]}, {"timestamp": "16:40", "azimuth": 239.1, "elevation": 15.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8276528703340322, -0.4953400243568143, 0.2638730499653729]}, {"timestamp": "16:45", "azimuth": 239.9, "elevation": 14.3, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8383453365810442, -0.4859717937769702, 0.2469990127227429]}, {"timestamp": "16:50", "azimuth": 240.6, "elevation": 13.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8474957802205976, -0.4775393300392581, 0.2317479034941573]}, {"timestamp": "16:55", "azimuth": 241.3, "elevation": 12.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8566843421384124, -0.46902097735744186, 0.2147353271670632]}, {"timestamp": "17:00", "azimuth": 242.0, "elevation": 11.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8655280739812422, -0.4602094403036206, 0.19765734037912616]}, {"timestamp": "17:05", "azimuth": 242.7, "elevation": 10.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8737372549538789, -0.4509694252987239, 0.18223552549214747]}, {"timestamp": "17:10", "azimuth": 243.4, "elevation": 9.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8818914493481805, -0.4416183412928228, 0.16504760586067765]}, {"timestamp": "17:15", "azimuth": 244.1, "elevation": 8.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8896769133972857, -0.43200389784051274, 0.14780941112961063]}, {"timestamp": "17:20", "azimuth": 244.7, "elevation": 7.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.8963479981189114, -0.423701757622923, 0.13052619222005157]}, {"timestamp": "17:25", "azimuth": 245.4, "elevation": 6.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.9033914081140559, -0.4136048792486869, 0.11320321376790672]}, {"timestamp": "17:30", "azimuth": 246.0, "elevation": 5.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.9093396755730496, -0.40486410825427954, 0.09584575252022398]}, {"timestamp": "17:35", "azimuth": 246.6, "elevation": 4.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.9149254944581191, -0.3959236162293619, 0.07845909572784494]}, {"timestamp": "17:40", "azimuth": 247.3, "elevation": 3.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.9208173699559049, -0.3851862497651638, 0.06104853953485687]}, {"timestamp": "17:45", "azimuth": 247.9, "elevation": 2.5, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.9256467809171826, -0.37586618100532826, 0.043619387365336]}, {"timestamp": "17:50", "azimuth": 248.5, "elevation": 1.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.9301398288302152, -0.36639182236291107, 0.024432178152653153]}, {"timestamp": "17:55", "azimuth": 249.1, "elevation": 0.4, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": [-0.934181708416973, -0.3567293058662234, 0.0069812602979615525]}, {"timestamp": "18:00", "azimuth": 249.7, "elevation": -0.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "18:05", "azimuth": 250.3, "elevation": -1.6, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "18:10", "azimuth": 250.9, "elevation": -2.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "18:15", "azimuth": 251.4, "elevation": -3.7, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}, {"timestamp": "18:20", "azimuth": 252.0, "elevation": -4.8, "is_hit": false, "window_id": null, "hit_points": [], "sun_direction": null}];
+
+        // Active config (mutable, from localStorage or original)
+        let config = JSON.parse(JSON.stringify(originalConfig));
+        let results = [];  // Will be recalculated
+
+        // Simulation settings
+        let simSettings = {
+            sampleAngular: 8,
+            sampleVertical: 3
+        };
 
         let currentIndex = 0;
+        const STORAGE_KEY = 'sunPlantSimulator_config';
 
         // Room offset - moves room away from origin so sun can be rendered in all directions
         const ROOM_OFFSET_X = 30;
         const ROOM_OFFSET_Y = 30;
+
+        // ========== CONFIG PANEL FUNCTIONS ==========
+
+        function toggleConfig() {
+            const body = document.getElementById('configBody');
+            const toggle = document.getElementById('configToggle');
+            body.classList.toggle('open');
+            toggle.classList.toggle('open');
+        }
+
+        function loadConfigFromStorage() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    // Merge saved config into active config
+                    if (parsed.plant) {
+                        config.plant = { ...config.plant, ...parsed.plant };
+                    }
+                    if (parsed.wallThickness !== undefined) {
+                        config.windows.forEach(w => w.wall_thickness = parsed.wallThickness);
+                    }
+                    if (parsed.simulation) {
+                        simSettings = { ...simSettings, ...parsed.simulation };
+                    }
+                    console.log('Loaded config from localStorage:', parsed);
+                }
+            } catch (e) {
+                console.warn('Failed to load config from localStorage:', e);
+            }
+        }
+
+        function saveConfigToStorage() {
+            try {
+                const toSave = {
+                    plant: {
+                        center_x: config.plant.center_x,
+                        center_y: config.plant.center_y,
+                        radius: config.plant.radius,
+                        z_max: config.plant.z_max
+                    },
+                    wallThickness: config.windows[0]?.wall_thickness || 0,
+                    simulation: simSettings
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+
+                // Show saved indicator
+                const indicator = document.getElementById('savedIndicator');
+                indicator.classList.add('show');
+                setTimeout(() => indicator.classList.remove('show'), 2000);
+            } catch (e) {
+                console.warn('Failed to save config to localStorage:', e);
+            }
+        }
+
+        function populateConfigFields() {
+            document.getElementById('plantCenterX').value = config.plant.center_x;
+            document.getElementById('plantCenterY').value = config.plant.center_y;
+            document.getElementById('plantRadius').value = config.plant.radius;
+            document.getElementById('plantZMax').value = config.plant.z_max;
+            document.getElementById('wallThickness').value = config.windows[0]?.wall_thickness || 0;
+            document.getElementById('sampleAngular').value = simSettings.sampleAngular;
+            document.getElementById('sampleVertical').value = simSettings.sampleVertical;
+        }
+
+        function applyConfig() {
+            // Read values from inputs
+            config.plant.center_x = parseFloat(document.getElementById('plantCenterX').value);
+            config.plant.center_y = parseFloat(document.getElementById('plantCenterY').value);
+            config.plant.radius = parseFloat(document.getElementById('plantRadius').value);
+            config.plant.z_max = parseFloat(document.getElementById('plantZMax').value);
+
+            const thickness = parseFloat(document.getElementById('wallThickness').value);
+            config.windows.forEach(w => w.wall_thickness = thickness);
+
+            simSettings.sampleAngular = parseInt(document.getElementById('sampleAngular').value);
+            simSettings.sampleVertical = parseInt(document.getElementById('sampleVertical').value);
+
+            // Save and recalculate
+            saveConfigToStorage();
+            recalculateAllResults();
+            updatePlot(currentIndex);
+        }
+
+        function resetConfig() {
+            if (confirm('Reset all settings to default values?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                config = JSON.parse(JSON.stringify(originalConfig));
+                simSettings = { sampleAngular: 8, sampleVertical: 3 };
+                populateConfigFields();
+                recalculateAllResults();
+                updatePlot(currentIndex);
+            }
+        }
+
+        function exportConfig() {
+            const exportData = {
+                plant: config.plant,
+                windows: config.windows.map(w => ({
+                    id: w.id,
+                    center: w.center,
+                    width: w.width,
+                    height: w.height,
+                    wall_thickness: w.wall_thickness
+                })),
+                simulation: simSettings
+            };
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sun_plant_config.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ========== RAY CASTING (JavaScript implementation) ==========
+
+        function generatePlantSamplePoints() {
+            const points = [];
+            const plant = config.plant;
+            const nAngular = simSettings.sampleAngular;
+            const nVertical = simSettings.sampleVertical;
+
+            for (let vi = 0; vi < nVertical; vi++) {
+                const z = plant.z_min + (plant.z_max - plant.z_min) * (vi + 0.5) / nVertical;
+                for (let ai = 0; ai < nAngular; ai++) {
+                    const angle = (2 * Math.PI * ai) / nAngular;
+                    const x = plant.center_x + plant.radius * Math.cos(angle);
+                    const y = plant.center_y + plant.radius * Math.sin(angle);
+                    points.push([x, y, z]);
+                }
+            }
+            return points;
+        }
+
+        function sunDirectionFromAngles(azimuthDeg, elevationDeg) {
+            const azRad = azimuthDeg * Math.PI / 180;
+            const elRad = elevationDeg * Math.PI / 180;
+            return [
+                Math.sin(azRad) * Math.cos(elRad),
+                Math.cos(azRad) * Math.cos(elRad),
+                Math.sin(elRad)
+            ];
+        }
+
+        function rayIntersectsWindowTunnel(origin, direction, window) {
+            // Check sun is on correct side of wall
+            const azRad = window.wall_normal_azimuth * Math.PI / 180;
+            const wallNormal = [Math.sin(azRad), Math.cos(azRad), 0];
+            const sunSideCheck = direction[0]*wallNormal[0] + direction[1]*wallNormal[1];
+            if (sunSideCheck <= 0) return false;
+
+            // Determine plane axis (wall 1 at y=0, wall 2 at x=0)
+            const isWall1 = Math.abs(window.center[1]) < Math.abs(window.center[0]);
+            const planeAxis = isWall1 ? 1 : 0;
+            const innerCoord = window.center[planeAxis];
+            const thickness = window.wall_thickness || 0;
+            const outerCoord = innerCoord - thickness;
+
+            // Helper to check intersection with axis-aligned plane
+            function checkPlaneIntersection(planeCoord) {
+                if (Math.abs(direction[planeAxis]) < 1e-10) return null;
+                const t = (planeCoord - origin[planeAxis]) / direction[planeAxis];
+                if (t < 0) return null;
+
+                const intersection = [
+                    origin[0] + t * direction[0],
+                    origin[1] + t * direction[1],
+                    origin[2] + t * direction[2]
+                ];
+
+                // Check bounds
+                const localH = isWall1
+                    ? intersection[0] - window.center[0]
+                    : intersection[1] - window.center[1];
+                const localV = intersection[2] - window.center[2];
+
+                const withinH = Math.abs(localH) <= window.width / 2 + 1e-6;
+                const withinV = Math.abs(localV) <= window.height / 2 + 1e-6;
+
+                return withinH && withinV ? intersection : null;
+            }
+
+            // Check inner plane
+            const innerHit = checkPlaneIntersection(innerCoord);
+            if (!innerHit) return false;
+
+            // If no thickness, single plane is enough
+            if (thickness <= 0) return true;
+
+            // Check outer plane for tunnel model
+            const outerHit = checkPlaneIntersection(outerCoord);
+            return outerHit !== null;
+        }
+
+        function checkSunHitsPlant(azimuthDeg, elevationDeg) {
+            if (elevationDeg <= 0) {
+                return { is_hit: false, reason: 'sun_below_horizon', sun_direction: null, window_id: null, hit_points: [] };
+            }
+
+            const sunDir = sunDirectionFromAngles(azimuthDeg, elevationDeg);
+            const samplePoints = generatePlantSamplePoints();
+            const hitPoints = [];
+            let hitWindowId = null;
+
+            for (const pt of samplePoints) {
+                for (const window of config.windows) {
+                    if (rayIntersectsWindowTunnel(pt, sunDir, window)) {
+                        hitPoints.push(pt);
+                        if (!hitWindowId) hitWindowId = window.id;
+                        break;
+                    }
+                }
+            }
+
+            return {
+                is_hit: hitPoints.length > 0,
+                window_id: hitWindowId,
+                hit_points: hitPoints,
+                sun_direction: sunDir,
+                reason: hitPoints.length === 0 ? 'no_window_path' : null
+            };
+        }
+
+        function recalculateAllResults() {
+            results = sunPositions.map(sp => {
+                const hit = checkSunHitsPlant(sp.azimuth, sp.elevation);
+                return {
+                    timestamp: sp.timestamp,
+                    azimuth: sp.azimuth,
+                    elevation: sp.elevation,
+                    ...hit
+                };
+            });
+        }
 
         // Check if sun shines into a window based on wall normal azimuth
         // Sun shines through window if sun direction is opposite to outward normal
@@ -152,121 +588,324 @@
             const result = results[index];
             const traces = [];
             const sunDir = result.sun_direction;
+            const wallThickness = config.windows[0]?.wall_thickness || 0;
+            const wallHeight = 6;
+            const wallLength = 15;
 
-            // Add walls as lines to show room boundary
-            // Wall 1 along X-axis (at y=ROOM_OFFSET_Y)
-            traces.push({
-                type: 'scatter3d',
-                mode: 'lines',
-                x: [ROOM_OFFSET_X, ROOM_OFFSET_X + 15],
-                y: [ROOM_OFFSET_Y, ROOM_OFFSET_Y],
-                z: [0, 0],
-                line: { color: '#888', width: 4 },
-                name: 'Wall 1 (X-axis)',
-                showlegend: false,
-            });
-            traces.push({
-                type: 'scatter3d',
-                mode: 'lines',
-                x: [ROOM_OFFSET_X, ROOM_OFFSET_X + 15],
-                y: [ROOM_OFFSET_Y, ROOM_OFFSET_Y],
-                z: [6, 6],
-                line: { color: '#888', width: 4 },
-                name: 'Wall 1 top',
-                showlegend: false,
-            });
+            // Get wall info
+            const wall1 = config.walls?.find(w => w.id === 'wall_1') || { normal_azimuth: 210, thickness: 0.3 };
+            const wall2 = config.walls?.find(w => w.id === 'wall_2') || { normal_azimuth: 300, thickness: 0.3 };
 
-            // Wall 2 along Y-axis (at x=ROOM_OFFSET_X)
+            // ========== COMPASS (ENU: X=East, Y=North) ==========
+            const compassCenter = [ROOM_OFFSET_X - 3, ROOM_OFFSET_Y - 3, 0.1];
+            const compassLen = 2;
+            // North arrow (Y+ direction)
             traces.push({
                 type: 'scatter3d',
-                mode: 'lines',
-                x: [ROOM_OFFSET_X, ROOM_OFFSET_X],
-                y: [ROOM_OFFSET_Y, ROOM_OFFSET_Y + 15],
-                z: [0, 0],
-                line: { color: '#888', width: 4 },
-                name: 'Wall 2 (Y-axis)',
+                mode: 'lines+text',
+                x: [compassCenter[0], compassCenter[0]],
+                y: [compassCenter[1], compassCenter[1] + compassLen],
+                z: [compassCenter[2], compassCenter[2]],
+                line: { color: 'red', width: 5 },
+                text: ['', 'N'],
+                textposition: 'top center',
+                textfont: { size: 16, color: 'red' },
+                name: 'North',
                 showlegend: false,
             });
+            // East arrow (X+ direction)
             traces.push({
                 type: 'scatter3d',
-                mode: 'lines',
-                x: [ROOM_OFFSET_X, ROOM_OFFSET_X],
-                y: [ROOM_OFFSET_Y, ROOM_OFFSET_Y + 15],
-                z: [6, 6],
-                line: { color: '#888', width: 4 },
-                name: 'Wall 2 top',
+                mode: 'lines+text',
+                x: [compassCenter[0], compassCenter[0] + compassLen],
+                y: [compassCenter[1], compassCenter[1]],
+                z: [compassCenter[2], compassCenter[2]],
+                line: { color: 'blue', width: 5 },
+                text: ['', 'E'],
+                textposition: 'middle right',
+                textfont: { size: 16, color: 'blue' },
+                name: 'East',
                 showlegend: false,
             });
 
-            // Add windows with sun exposure coloring
+            // ========== WALL GEOMETRY (rotated to actual azimuths) ==========
+            // Wall normal azimuths from config
+            const wall1Az = wall1.normal_azimuth * Math.PI / 180;  // 210° = SW
+            const wall2Az = wall2.normal_azimuth * Math.PI / 180;  // 300° = NW
+
+            // Outward normal directions (pointing outside the room)
+            const wall1Normal = [Math.sin(wall1Az), Math.cos(wall1Az)];  // Points outward at 210°
+            const wall2Normal = [Math.sin(wall2Az), Math.cos(wall2Az)];  // Points outward at 300°
+
+            // Wall directions: perpendicular to normal
+            // Wall 1: 210° - 90° = 120° (toward ESE)
+            // Wall 2: 300° + 90° = 30° (toward NNE)
+            const wall1Dir = [-Math.cos(wall1Az), Math.sin(wall1Az)];   // 120° (ESE)
+            const wall2Dir = [Math.cos(wall2Az), -Math.sin(wall2Az)];   // 30° (NNE)
+
+            // Position the plant at the room offset, then calculate corner from plant's ENU position
+            // Plant ENU coords (center_x, center_y) represent offset FROM corner in ENU space
+            // So corner = plant_viz_position - plant_ENU_position
+            const plant = config.plant;
+            const plantVizX = ROOM_OFFSET_X;
+            const plantVizY = ROOM_OFFSET_Y;
+            const cornerX = plantVizX - plant.center_x;
+            const cornerY = plantVizY - plant.center_y;
+
+            // ========== WALL 1 (normal at azimuth ${wall1.normal_azimuth}°) ==========
+            // Wall runs from corner along wall1Dir
+            const w1InnerStart = [cornerX, cornerY];
+            const w1InnerEnd = [cornerX + wallLength * wall1Dir[0], cornerY + wallLength * wall1Dir[1]];
+            const w1OuterStart = [cornerX - wallThickness * wall1Normal[0], cornerY - wallThickness * wall1Normal[1]];
+            const w1OuterEnd = [w1InnerEnd[0] - wallThickness * wall1Normal[0], w1InnerEnd[1] - wallThickness * wall1Normal[1]];
+
+            // Inner surface
+            traces.push({
+                type: 'mesh3d',
+                x: [w1InnerStart[0], w1InnerEnd[0], w1InnerEnd[0], w1InnerStart[0]],
+                y: [w1InnerStart[1], w1InnerEnd[1], w1InnerEnd[1], w1InnerStart[1]],
+                z: [0, 0, wallHeight, wallHeight],
+                i: [0, 0],
+                j: [1, 2],
+                k: [2, 3],
+                color: 'rgba(180, 180, 180, 0.3)',
+                name: 'Wall 1 Inner',
+                showlegend: false,
+                hoverinfo: 'name',
+            });
+
+            // Outer surface
+            if (wallThickness > 0) {
+                traces.push({
+                    type: 'mesh3d',
+                    x: [w1OuterStart[0], w1OuterEnd[0], w1OuterEnd[0], w1OuterStart[0]],
+                    y: [w1OuterStart[1], w1OuterEnd[1], w1OuterEnd[1], w1OuterStart[1]],
+                    z: [0, 0, wallHeight, wallHeight],
+                    i: [0, 0],
+                    j: [1, 2],
+                    k: [2, 3],
+                    color: 'rgba(150, 150, 150, 0.2)',
+                    name: 'Wall 1 Outer',
+                    showlegend: false,
+                    hoverinfo: 'name',
+                });
+            }
+
+            // Wall 1 frame
+            traces.push({
+                type: 'scatter3d',
+                mode: 'lines',
+                x: [w1InnerStart[0], w1InnerEnd[0], w1InnerEnd[0], w1InnerStart[0], w1InnerStart[0]],
+                y: [w1InnerStart[1], w1InnerEnd[1], w1InnerEnd[1], w1InnerStart[1], w1InnerStart[1]],
+                z: [0, 0, wallHeight, wallHeight, 0],
+                line: { color: '#2E7D32', width: 4 },
+                name: `Wall 1 (azimuth ${wall1.normal_azimuth}°)`,
+                showlegend: true,
+            });
+
+            // ========== WALL 2 (normal at azimuth ${wall2.normal_azimuth}°) ==========
+            // Wall runs from corner along wall2Dir
+            const w2InnerStart = [cornerX, cornerY];
+            const w2InnerEnd = [cornerX + wallLength * wall2Dir[0], cornerY + wallLength * wall2Dir[1]];
+            const w2OuterStart = [cornerX - wallThickness * wall2Normal[0], cornerY - wallThickness * wall2Normal[1]];
+            const w2OuterEnd = [w2InnerEnd[0] - wallThickness * wall2Normal[0], w2InnerEnd[1] - wallThickness * wall2Normal[1]];
+
+            // Inner surface
+            traces.push({
+                type: 'mesh3d',
+                x: [w2InnerStart[0], w2InnerEnd[0], w2InnerEnd[0], w2InnerStart[0]],
+                y: [w2InnerStart[1], w2InnerEnd[1], w2InnerEnd[1], w2InnerStart[1]],
+                z: [0, 0, wallHeight, wallHeight],
+                i: [0, 0],
+                j: [1, 2],
+                k: [2, 3],
+                color: 'rgba(180, 180, 180, 0.3)',
+                name: 'Wall 2 Inner',
+                showlegend: false,
+                hoverinfo: 'name',
+            });
+
+            // Outer surface
+            if (wallThickness > 0) {
+                traces.push({
+                    type: 'mesh3d',
+                    x: [w2OuterStart[0], w2OuterEnd[0], w2OuterEnd[0], w2OuterStart[0]],
+                    y: [w2OuterStart[1], w2OuterEnd[1], w2OuterEnd[1], w2OuterStart[1]],
+                    z: [0, 0, wallHeight, wallHeight],
+                    i: [0, 0],
+                    j: [1, 2],
+                    k: [2, 3],
+                    color: 'rgba(150, 150, 150, 0.2)',
+                    name: 'Wall 2 Outer',
+                    showlegend: false,
+                    hoverinfo: 'name',
+                });
+            }
+
+            // Wall 2 frame
+            traces.push({
+                type: 'scatter3d',
+                mode: 'lines',
+                x: [w2InnerStart[0], w2InnerEnd[0], w2InnerEnd[0], w2InnerStart[0], w2InnerStart[0]],
+                y: [w2InnerStart[1], w2InnerEnd[1], w2InnerEnd[1], w2InnerStart[1], w2InnerStart[1]],
+                z: [0, 0, wallHeight, wallHeight, 0],
+                line: { color: '#1565C0', width: 4 },
+                name: `Wall 2 (azimuth ${wall2.normal_azimuth}°)`,
+                showlegend: true,
+            });
+
+            // ========== FLOOR (triangular, bounded by rotated walls) ==========
+            // Floor is the area between the two walls and extending inward
+            const floorCorners = [
+                [cornerX, cornerY],  // Corner
+                [w1InnerEnd[0], w1InnerEnd[1]],  // End of wall 1
+                [cornerX + wallLength * wall1Dir[0] + wallLength * wall2Dir[0],
+                 cornerY + wallLength * wall1Dir[1] + wallLength * wall2Dir[1]],  // Far corner
+                [w2InnerEnd[0], w2InnerEnd[1]],  // End of wall 2
+            ];
+            traces.push({
+                type: 'mesh3d',
+                x: floorCorners.map(c => c[0]),
+                y: floorCorners.map(c => c[1]),
+                z: [0, 0, 0, 0],
+                i: [0, 0],
+                j: [1, 2],
+                k: [2, 3],
+                color: 'rgba(200, 180, 160, 0.3)',
+                name: 'Floor',
+                showlegend: false,
+                hoverinfo: 'name',
+            });
+
+            // Add windows with sun exposure coloring (positioned on rotated walls)
             config.windows.forEach((w, i) => {
-                const isWall1 = w.id.startsWith('window_1');
+                const isWall1 = w.wall_id === 'wall_1' || w.id.startsWith('window_1');
                 const receivesSun = windowReceivesSun(w.wall_normal_azimuth, sunDir);
+                const thickness = w.wall_thickness || 0;
 
                 // Colors: bright yellow/orange if receiving sun, otherwise default
-                let color, frameColor;
+                let color, frameColor, outerColor;
                 if (receivesSun) {
                     color = 'rgba(255, 200, 50, 0.8)';  // Bright yellow - sun hitting
+                    outerColor = 'rgba(255, 220, 100, 0.6)';
                     frameColor = '#FF8C00';  // Dark orange frame
                 } else {
-                    color = isWall1 ? 'rgba(144, 238, 144, 0.4)' : 'rgba(135, 206, 235, 0.4)';
+                    color = isWall1 ? 'rgba(144, 238, 144, 0.5)' : 'rgba(135, 206, 235, 0.5)';
+                    outerColor = isWall1 ? 'rgba(144, 238, 144, 0.3)' : 'rgba(135, 206, 235, 0.3)';
                     frameColor = isWall1 ? '#228B22' : '#4169E1';
                 }
 
-                // Window rectangle with offset
-                let corners;
-                if (isWall1) {
-                    // Wall 1: along X-axis, y=ROOM_OFFSET_Y
-                    corners = [
-                        [ROOM_OFFSET_X + w.center[0] - w.width/2, ROOM_OFFSET_Y, w.center[2] - w.height/2],
-                        [ROOM_OFFSET_X + w.center[0] + w.width/2, ROOM_OFFSET_Y, w.center[2] - w.height/2],
-                        [ROOM_OFFSET_X + w.center[0] + w.width/2, ROOM_OFFSET_Y, w.center[2] + w.height/2],
-                        [ROOM_OFFSET_X + w.center[0] - w.width/2, ROOM_OFFSET_Y, w.center[2] + w.height/2],
-                    ];
-                } else {
-                    // Wall 2: along Y-axis, x=ROOM_OFFSET_X
-                    corners = [
-                        [ROOM_OFFSET_X, ROOM_OFFSET_Y + w.center[1] - w.width/2, w.center[2] - w.height/2],
-                        [ROOM_OFFSET_X, ROOM_OFFSET_Y + w.center[1] + w.width/2, w.center[2] - w.height/2],
-                        [ROOM_OFFSET_X, ROOM_OFFSET_Y + w.center[1] + w.width/2, w.center[2] + w.height/2],
-                        [ROOM_OFFSET_X, ROOM_OFFSET_Y + w.center[1] - w.width/2, w.center[2] + w.height/2],
-                    ];
-                }
+                // Window position along wall (from config x_position or y_position)
+                const wallPos = isWall1 ? (w.center[0] || 0) : (w.center[1] || 0);
+                const wallDir = isWall1 ? wall1Dir : wall2Dir;
+                const wallNormal = isWall1 ? wall1Normal : wall2Normal;
 
-                // Window mesh
+                // Window center on wall (in world coordinates)
+                const windowCenterX = cornerX + wallPos * wallDir[0];
+                const windowCenterY = cornerY + wallPos * wallDir[1];
+
+                // Window corners (perpendicular to wall = along wallDir, vertical = Z)
+                const halfW = w.width / 2;
+                const halfH = w.height / 2;
+                const wz = w.center[2];
+
+                let innerCorners = [
+                    [windowCenterX - halfW * wallDir[0], windowCenterY - halfW * wallDir[1], wz - halfH],
+                    [windowCenterX + halfW * wallDir[0], windowCenterY + halfW * wallDir[1], wz - halfH],
+                    [windowCenterX + halfW * wallDir[0], windowCenterY + halfW * wallDir[1], wz + halfH],
+                    [windowCenterX - halfW * wallDir[0], windowCenterY - halfW * wallDir[1], wz + halfH],
+                ];
+
+                // Outer corners (offset by wall thickness in outward normal direction)
+                let outerCorners = innerCorners.map(c => [
+                    c[0] - thickness * wallNormal[0],
+                    c[1] - thickness * wallNormal[1],
+                    c[2]
+                ]);
+
+                // Inner window mesh
                 traces.push({
                     type: 'mesh3d',
-                    x: corners.map(c => c[0]),
-                    y: corners.map(c => c[1]),
-                    z: corners.map(c => c[2]),
+                    x: innerCorners.map(c => c[0]),
+                    y: innerCorners.map(c => c[1]),
+                    z: innerCorners.map(c => c[2]),
                     i: [0, 0],
                     j: [1, 2],
                     k: [2, 3],
                     color: color,
-                    name: w.id,
+                    name: w.id + ' (inner)',
                     showlegend: false,
+                    hoverinfo: 'name',
                 });
 
-                // Window frame
-                const frameX = [...corners.map(c => c[0]), corners[0][0]];
-                const frameY = [...corners.map(c => c[1]), corners[0][1]];
-                const frameZ = [...corners.map(c => c[2]), corners[0][2]];
+                // Inner window frame
+                const innerFrameX = [...innerCorners.map(c => c[0]), innerCorners[0][0]];
+                const innerFrameY = [...innerCorners.map(c => c[1]), innerCorners[0][1]];
+                const innerFrameZ = [...innerCorners.map(c => c[2]), innerCorners[0][2]];
                 traces.push({
                     type: 'scatter3d',
                     mode: 'lines',
-                    x: frameX,
-                    y: frameY,
-                    z: frameZ,
+                    x: innerFrameX,
+                    y: innerFrameY,
+                    z: innerFrameZ,
                     line: { color: frameColor, width: 3 },
-                    name: w.id + ' frame',
-                    showlegend: false,
+                    name: w.id,
+                    showlegend: i === 0,
                 });
+
+                // Outer window (only if wall has thickness)
+                if (thickness > 0) {
+                    // Outer window mesh
+                    traces.push({
+                        type: 'mesh3d',
+                        x: outerCorners.map(c => c[0]),
+                        y: outerCorners.map(c => c[1]),
+                        z: outerCorners.map(c => c[2]),
+                        i: [0, 0],
+                        j: [1, 2],
+                        k: [2, 3],
+                        color: outerColor,
+                        name: w.id + ' (outer)',
+                        showlegend: false,
+                        hoverinfo: 'name',
+                    });
+
+                    // Outer window frame
+                    const outerFrameX = [...outerCorners.map(c => c[0]), outerCorners[0][0]];
+                    const outerFrameY = [...outerCorners.map(c => c[1]), outerCorners[0][1]];
+                    const outerFrameZ = [...outerCorners.map(c => c[2]), outerCorners[0][2]];
+                    traces.push({
+                        type: 'scatter3d',
+                        mode: 'lines',
+                        x: outerFrameX,
+                        y: outerFrameY,
+                        z: outerFrameZ,
+                        line: { color: frameColor, width: 2, dash: 'dot' },
+                        name: w.id + ' outer frame',
+                        showlegend: false,
+                    });
+
+                    // Tunnel edges (connect inner to outer corners)
+                    for (let ci = 0; ci < 4; ci++) {
+                        traces.push({
+                            type: 'scatter3d',
+                            mode: 'lines',
+                            x: [innerCorners[ci][0], outerCorners[ci][0]],
+                            y: [innerCorners[ci][1], outerCorners[ci][1]],
+                            z: [innerCorners[ci][2], outerCorners[ci][2]],
+                            line: { color: frameColor, width: 1 },
+                            showlegend: false,
+                            hoverinfo: 'skip',
+                        });
+                    }
+                }
             });
 
-            // Add plant cylinder (with offset)
-            const plant = config.plant;
-            const plantX = ROOM_OFFSET_X + plant.center_x;
-            const plantY = ROOM_OFFSET_Y + plant.center_y;
+            // Add plant cylinder
+            // Plant is positioned at the room offset center (plantVizX, plantVizY)
+            // This was calculated earlier: corner + plant.center = plantViz position
+            const plantX = plantVizX;
+            const plantY = plantVizY;
             const nPts = 20;
             const theta = Array.from({length: nPts}, (_, i) => 2 * Math.PI * i / nPts);
 
@@ -306,18 +945,22 @@
                 showlegend: true,
             });
 
-            // Helper function to find ray-window intersection (with offset)
+            // Helper function to find ray-window intersection (with rotated walls)
             function rayWindowIntersection(origin, direction, window) {
-                // Get window normal based on wall
-                const isWall1 = window.id.startsWith('window_1');
-                // Wall 1 along X-axis (y=OFFSET), normal points in -Y direction
-                // Wall 2 along Y-axis (x=OFFSET), normal points in -X direction
-                const normal = isWall1 ? [0, -1, 0] : [-1, 0, 0];
+                // Get actual wall normal from config azimuth
+                const azRad = window.wall_normal_azimuth * Math.PI / 180;
+                const normal = [Math.sin(azRad), Math.cos(azRad), 0];
 
-                // Window center with offset
-                const windowCenter = isWall1
-                    ? [ROOM_OFFSET_X + window.center[0], ROOM_OFFSET_Y, window.center[2]]
-                    : [ROOM_OFFSET_X, ROOM_OFFSET_Y + window.center[1], window.center[2]];
+                const isWall1 = window.id.startsWith('window_1');
+                const wallDir = isWall1 ? wall1Dir : wall2Dir;
+                const wallPos = isWall1 ? (window.center[0] || 0) : (window.center[1] || 0);
+
+                // Window center on wall (in world coordinates)
+                const windowCenter = [
+                    cornerX + wallPos * wallDir[0],
+                    cornerY + wallPos * wallDir[1],
+                    window.center[2]
+                ];
 
                 const denom = direction[0]*normal[0] + direction[1]*normal[1] + direction[2]*normal[2];
                 if (Math.abs(denom) < 1e-10) return null;
@@ -349,11 +992,15 @@
                     if (!receivesSunRay) return;
 
                     const isWall1 = w.id.startsWith('window_1');
+                    const wallDir = isWall1 ? wall1Dir : wall2Dir;
+                    const wallPos = isWall1 ? (w.center[0] || 0) : (w.center[1] || 0);
 
-                    // Window center with offset
-                    const windowCenter = isWall1
-                        ? [ROOM_OFFSET_X + w.center[0], ROOM_OFFSET_Y, w.center[2]]
-                        : [ROOM_OFFSET_X, ROOM_OFFSET_Y + w.center[1], w.center[2]];
+                    // Window center on rotated wall (in world coordinates)
+                    const windowCenter = [
+                        cornerX + wallPos * wallDir[0],
+                        cornerY + wallPos * wallDir[1],
+                        w.center[2]
+                    ];
 
                     // Calculate sun position along the ray direction from window
                     const sunStart = [
@@ -421,7 +1068,8 @@
 
                     result.hit_points.forEach((pt, i) => {
                         if (i < 3) { // Limit rays shown
-                            const ptOffset = [pt[0] + ROOM_OFFSET_X, pt[1] + ROOM_OFFSET_Y, pt[2]];
+                            // Convert hit point from ENU to visualization coordinates
+                            const ptOffset = [pt[0] + cornerX, pt[1] + cornerY, pt[2]];
 
                             // Find window intersection for this ray
                             let windowPt = null;
@@ -514,10 +1162,14 @@
                 statusEl.textContent = '☀️ SUNLIGHT HITTING PLANT';
                 statusEl.className = 'status hit';
                 document.getElementById('windowInfo').textContent = `Through: ${result.window_id}`;
+                const totalSamples = simSettings.sampleAngular * simSettings.sampleVertical;
+                const hitCount = result.hit_points ? result.hit_points.length : 0;
+                document.getElementById('hitPointsInfo').textContent = `Hits: ${hitCount}/${totalSamples} (${Math.round(100*hitCount/totalSamples)}%)`;
             } else {
                 statusEl.textContent = 'No direct sunlight';
                 statusEl.className = 'status miss';
                 document.getElementById('windowInfo').textContent = '';
+                document.getElementById('hitPointsInfo').textContent = '';
             }
 
             Plotly.react('plot3d', traces, {
@@ -538,11 +1190,27 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            // Load saved config from localStorage
+            loadConfigFromStorage();
+
+            // Populate form fields with current config
+            populateConfigFields();
+
+            // Calculate initial results with current config
+            recalculateAllResults();
+
             const slider = document.getElementById('timeSlider');
 
             slider.addEventListener('input', function() {
                 currentIndex = parseInt(this.value);
                 updatePlot(currentIndex);
+            });
+
+            // Auto-apply on Enter key in inputs
+            document.querySelectorAll('.config-field input').forEach(input => {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') applyConfig();
+                });
             });
 
             // Initial plot
