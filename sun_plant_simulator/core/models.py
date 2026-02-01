@@ -12,6 +12,22 @@ import numpy as np
 
 
 @dataclass
+class Location:
+    """Geographic location for sun position calculations.
+
+    Attributes:
+        latitude: Latitude in degrees (positive = North).
+        longitude: Longitude in degrees (positive = East).
+        timezone_offset: Hours offset from UTC (e.g., -5 for EST).
+        timezone_name: IANA timezone identifier (e.g., "America/New_York").
+    """
+    latitude: float
+    longitude: float
+    timezone_offset: float = -5.0
+    timezone_name: Optional[str] = None
+
+
+@dataclass
 class Window:
     """A rectangular window on a wall.
 
@@ -165,6 +181,7 @@ class Config:
         windows: List of window definitions.
         plant: Plant definition.
         simulation: Simulation parameters.
+        location: Geographic location for sun calculations.
         coordinate_system: Coordinate system name (default "ENU").
         units: Units for measurements (default "meters").
     """
@@ -173,6 +190,7 @@ class Config:
     windows: list[Window]
     plant: Plant
     simulation: SimulationConfig = field(default_factory=SimulationConfig)
+    location: Optional[Location] = None
     coordinate_system: str = "ENU"
     units: str = "meters"
 
@@ -286,11 +304,23 @@ class Config:
             sample_points_vertical=sim_data.get("sample_points_vertical", 3),
         )
 
+        # Parse location data
+        location_data = data.get("location", {})
+        location = None
+        if location_data:
+            location = Location(
+                latitude=location_data.get("latitude", 0.0),
+                longitude=location_data.get("longitude", 0.0),
+                timezone_offset=location_data.get("timezone_offset", -5.0),
+                timezone_name=location_data.get("timezone_name"),
+            )
+
         return cls(
             walls=walls,
             windows=windows,
             plant=plant,
             simulation=simulation,
+            location=location,
             coordinate_system=data.get("coordinate_system", "ENU"),
             units=data.get("units", "meters"),
         )

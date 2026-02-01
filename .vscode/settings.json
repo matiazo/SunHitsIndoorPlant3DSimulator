@@ -1,0 +1,7 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "scp": true,
+        "docker logs": true,
+        "docker exec": true
+    }
+}
