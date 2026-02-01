@@ -21,8 +21,8 @@ from sun_plant_simulator.core.hit_test import check_sun_hits_plant
 from sun_plant_simulator.core.ray_casting import ray_window_intersection
 
 
-# Load config
-CONFIG = Config.from_json_file("config/default_config.json")
+# Load config dedicated to measurement validation
+CONFIG = Config.from_json_file("config/measurement_config.json")
 
 # Tolerance for measurements
 # Note: There's inherent uncertainty in measurements (sun position, distances, wall angles)

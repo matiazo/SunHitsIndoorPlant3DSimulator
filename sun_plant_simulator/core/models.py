@@ -197,6 +197,7 @@ class Config:
             wall_props[w["id"]] = {
                 "normal": w["outward_normal_azimuth_deg"],
                 "thickness": w.get("thickness", 0.0),
+                "axis": w.get("axis"),
             }
 
         windows = []
@@ -227,29 +228,49 @@ class Config:
         plant_data = data["plant"]
 
         # Support wall distances as alternative to x/y
-        if "dist_from_wall1" in plant_data and "dist_from_wall2" in plant_data:
-            from .coordinates import position_from_wall_distances
+        dist1 = plant_data.get("dist_from_wall1")
+        dist2 = plant_data.get("dist_from_wall2")
+        coordinate_system = data.get("coordinate_system", "ENU").lower()
+        simplify_axes = coordinate_system == "simplified"
 
-            # Get wall azimuths
-            wall1_az = walls[0].outward_normal_azimuth_deg if walls else 210
-            wall2_az = walls[1].outward_normal_azimuth_deg if len(walls) > 1 else 307
+        if dist1 is not None and dist2 is not None:
+            if simplify_axes:
+                # In simplified mode, walls align with axes: wall_1 distance maps to y, wall_2 to x
+                center_x = float(dist2)
+                center_y = float(dist1)
+            else:
+                from .coordinates import position_from_wall_distances
 
-            # Get corner position
-            corner_data = data.get("corner", {})
-            corner_x = corner_data.get("x", 0.0)
-            corner_y = corner_data.get("y", 0.0)
+                wall1_id = plant_data.get("wall1_id")
+                wall2_id = plant_data.get("wall2_id")
 
-            center_x, center_y = position_from_wall_distances(
-                dist_from_wall1=plant_data["dist_from_wall1"],
-                dist_from_wall2=plant_data["dist_from_wall2"],
-                wall1_normal_azimuth=wall1_az,
-                wall2_normal_azimuth=wall2_az,
-                corner_x=corner_x,
-                corner_y=corner_y,
-            )
+                if wall1_id is None and walls:
+                    wall1_id = walls[0].id
+                if wall2_id is None and len(walls) > 1:
+                    wall2_id = walls[1].id
+
+                wall1_az = wall_props.get(wall1_id, {}).get("normal", 210)
+                wall2_az = wall_props.get(wall2_id, {}).get("normal", 307)
+
+                # Get corner position
+                corner_data = data.get("corner", {})
+                corner_x = corner_data.get("x", 0.0)
+                corner_y = corner_data.get("y", 0.0)
+
+                center_x, center_y = position_from_wall_distances(
+                    dist_from_wall1=dist1,
+                    dist_from_wall2=dist2,
+                    wall1_normal_azimuth=wall1_az,
+                    wall2_normal_azimuth=wall2_az,
+                    corner_x=corner_x,
+                    corner_y=corner_y,
+                )
         else:
-            center_x = plant_data["center_x"]
-            center_y = plant_data["center_y"]
+            center_x = plant_data.get("center_x")
+            center_y = plant_data.get("center_y")
+
+        if center_x is None or center_y is None:
+            raise ValueError("Plant center coordinates could not be determined; provide center_x/center_y or wall distances")
 
         plant = Plant(
             center_x=center_x,

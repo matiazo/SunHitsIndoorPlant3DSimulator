@@ -3,12 +3,18 @@
 These tests verify that the simulation behaves in physically reasonable ways.
 """
 
+from datetime import date, datetime
+
 import numpy as np
 import pytest
 
 from sun_plant_simulator.core.geometry import sun_direction_from_angles
 from sun_plant_simulator.core.hit_test import check_sun_hits_plant
 from sun_plant_simulator.core.models import Config, Plant, Window
+from sun_plant_simulator.core.sun_position import (
+    calculate_sun_position,
+    generate_sun_data_for_date,
+)
 
 
 class TestPhysicalSanity:
@@ -220,3 +226,55 @@ class TestConfigurationSanity:
         assert plant.radius > 0
         assert plant.height > 0
         assert plant.z_max > plant.z_min
+
+    def test_wall_distance_conversion_simplified(self):
+        """Default config converts wall distances into simplified coordinates."""
+        config = Config.from_json_file("config/default_config.json")
+        assert config.plant.center_x == pytest.approx(3.9)
+        assert config.plant.center_y == pytest.approx(8.0)
+
+
+class TestTimezoneHandling:
+    """Ensure timezone metadata covers DST transitions."""
+
+    def test_timezone_name_adjusts_dst_offsets(self):
+        latitude = 28.349035
+        longitude = -81.245962
+        target_date = date(2026, 7, 1)
+
+        expected = calculate_sun_position(
+            latitude,
+            longitude,
+            datetime(target_date.year, target_date.month, target_date.day, 12, 0),
+            timezone_offset=-4,
+        )
+
+        data_with_tz = generate_sun_data_for_date(
+            latitude=latitude,
+            longitude=longitude,
+            target_date=target_date,
+            timezone_offset=-5,
+            timezone_name="America/New_York",
+            interval_minutes=60,
+            start_hour=12,
+            end_hour=12,
+        )
+        assert data_with_tz, "Expected sun data entries"
+        entry = data_with_tz[0]
+        assert entry["timestamp"] == "12:00"
+        assert entry["azimuth_deg"] == pytest.approx(expected.azimuth_deg, abs=0.2)
+        assert entry["elevation_deg"] == pytest.approx(expected.elevation_deg, abs=0.2)
+
+        data_without_tz = generate_sun_data_for_date(
+            latitude=latitude,
+            longitude=longitude,
+            target_date=target_date,
+            timezone_offset=-5,
+            timezone_name=None,
+            interval_minutes=60,
+            start_hour=12,
+            end_hour=12,
+        )
+        assert data_without_tz, "Expected baseline sun data"
+        baseline = data_without_tz[0]
+        assert abs(baseline["azimuth_deg"] - entry["azimuth_deg"]) > 1.0

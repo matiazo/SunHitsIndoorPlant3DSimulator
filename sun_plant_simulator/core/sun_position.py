@@ -8,6 +8,7 @@ import math
 from dataclasses import dataclass
 from datetime import datetime, date, timedelta
 from typing import Optional
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 @dataclass
@@ -32,10 +33,12 @@ class Location:
         latitude: Latitude in degrees (positive = North).
         longitude: Longitude in degrees (positive = East, negative = West).
         timezone_offset: Hours offset from UTC (e.g., -5 for EST, -4 for EDT).
+        timezone_name: Optional IANA timezone identifier (e.g., "America/New_York").
     """
     latitude: float
     longitude: float
     timezone_offset: float = -5.0  # Default to EST
+    timezone_name: Optional[str] = None
 
     @classmethod
     def from_config(cls, data: dict) -> "Location":
@@ -44,6 +47,7 @@ class Location:
             latitude=data["latitude"],
             longitude=data["longitude"],
             timezone_offset=data.get("timezone_offset", -5.0),
+            timezone_name=data.get("timezone_name"),
         )
 
 
@@ -147,11 +151,51 @@ def calculate_sun_position(
     )
 
 
+def resolve_timezone_offset(
+    dt: datetime,
+    timezone_offset: float = 0.0,
+    timezone_name: Optional[str] = None,
+) -> float:
+    """Resolve the UTC offset (hours) for a local datetime.
+
+    Args:
+        dt: Naive datetime interpreted as local wall time.
+        timezone_offset: Fallback fixed offset in hours.
+        timezone_name: Optional IANA timezone identifier.
+
+    Returns:
+        Offset in hours to apply when computing solar position.
+    """
+    if timezone_name:
+        try:
+            tz = ZoneInfo(timezone_name)
+        except ZoneInfoNotFoundError:
+            pass
+        else:
+            aware = datetime(
+                dt.year,
+                dt.month,
+                dt.day,
+                dt.hour,
+                dt.minute,
+                dt.second,
+                dt.microsecond,
+                tzinfo=tz,
+                fold=getattr(dt, "fold", 0),
+            )
+            offset = aware.utcoffset()
+            if offset is not None:
+                return offset.total_seconds() / 3600.0
+
+    return timezone_offset
+
+
 def generate_sun_data_for_date(
     latitude: float,
     longitude: float,
     target_date: date,
     timezone_offset: float = -5.0,
+    timezone_name: Optional[str] = None,
     interval_minutes: int = 30,
     start_hour: int = 5,
     end_hour: int = 21,
@@ -162,7 +206,8 @@ def generate_sun_data_for_date(
         latitude: Latitude in degrees.
         longitude: Longitude in degrees.
         target_date: The date to calculate for.
-        timezone_offset: Hours offset from UTC.
+        timezone_offset: Fixed hours offset from UTC (used if timezone_name missing).
+        timezone_name: Optional IANA timezone identifier for automatic DST handling.
         interval_minutes: Time between data points.
         start_hour: First hour to include (local time).
         end_hour: Last hour to include (local time).
@@ -176,7 +221,8 @@ def generate_sun_data_for_date(
     end_time = datetime(target_date.year, target_date.month, target_date.day, end_hour, 0)
 
     while current_time <= end_time:
-        pos = calculate_sun_position(latitude, longitude, current_time, timezone_offset)
+        offset = resolve_timezone_offset(current_time, timezone_offset, timezone_name)
+        pos = calculate_sun_position(latitude, longitude, current_time, offset)
 
         # Only include if sun is above horizon
         if pos.elevation_deg > -5:  # Include slightly below for twilight
@@ -196,6 +242,7 @@ def get_sunrise_sunset(
     longitude: float,
     target_date: date,
     timezone_offset: float = -5.0,
+    timezone_name: Optional[str] = None,
 ) -> tuple[Optional[datetime], Optional[datetime]]:
     """Get approximate sunrise and sunset times.
 
@@ -203,7 +250,8 @@ def get_sunrise_sunset(
         latitude: Latitude in degrees.
         longitude: Longitude in degrees.
         target_date: The date to calculate for.
-        timezone_offset: Hours offset from UTC.
+        timezone_offset: Fixed hours offset from UTC (used if timezone_name missing).
+        timezone_name: Optional IANA timezone identifier for automatic DST handling.
 
     Returns:
         Tuple of (sunrise_datetime, sunset_datetime). May be None for polar regions.
@@ -215,7 +263,8 @@ def get_sunrise_sunset(
     for hour in range(4, 12):
         for minute in range(0, 60, 5):
             dt = datetime(target_date.year, target_date.month, target_date.day, hour, minute)
-            pos = calculate_sun_position(latitude, longitude, dt, timezone_offset)
+            offset = resolve_timezone_offset(dt, timezone_offset, timezone_name)
+            pos = calculate_sun_position(latitude, longitude, dt, offset)
             if pos.elevation_deg > 0 and sunrise is None:
                 sunrise = dt
                 break
@@ -226,7 +275,8 @@ def get_sunrise_sunset(
     for hour in range(20, 12, -1):
         for minute in range(55, -1, -5):
             dt = datetime(target_date.year, target_date.month, target_date.day, hour, minute)
-            pos = calculate_sun_position(latitude, longitude, dt, timezone_offset)
+            offset = resolve_timezone_offset(dt, timezone_offset, timezone_name)
+            pos = calculate_sun_position(latitude, longitude, dt, offset)
             if pos.elevation_deg > 0 and sunset is None:
                 sunset = dt
                 break

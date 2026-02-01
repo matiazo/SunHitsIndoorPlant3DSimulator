@@ -1,14 +1,14 @@
 {
-  "coordinate_system": "simplified",
+  "coordinate_system": "enu",
   "units": "meters",
-  "description": "Simplified coordinate system: Wall 1 along X-axis, Wall 2 along Y-axis",
+  "description": "Configuration tuned to match real-world measurements from 2026-01-28.",
 
   "location": {
     "latitude": 28.349035,
     "longitude": -81.245962,
     "timezone_offset": -5,
     "timezone_name": "America/New_York",
-    "description": "Orlando, FL area. timezone_name handles DST automatically; timezone_offset is used as fallback"
+    "description": "Orlando, FL area."
   },
 
   "corner": {
@@ -21,14 +21,14 @@
     {
       "id": "wall_1",
       "outward_normal_azimuth_deg": 210,
-      "thickness": 0.30,
+      "thickness": 0.25,
       "axis": "x",
       "description": "Wall 1 runs along X-axis, 30cm thick wall"
     },
     {
       "id": "wall_2",
       "outward_normal_azimuth_deg": 300,
-      "thickness": 0.30,
+      "thickness": 0.25,
       "axis": "y",
       "description": "Wall 2 runs along Y-axis, 30cm thick wall"
     }
@@ -118,12 +118,12 @@
   ],
 
   "plant": {
-    "dist_from_wall1": 8.0,
-    "dist_from_wall2": 3.9,
+    "center_x": 7.38,
+    "center_y": 4.98,
     "radius": 0.3,
     "z_min": 0.0,
     "z_max": 1.2,
-    "description": "Enter real-world distances perpendicular to each wall (wall_1 first, wall_2 second). The simulator converts them to its coordinate system automatically."
+    "description": "Coordinates derived from distances: 8m perpendicular from front wall (az 210), 3.9m perpendicular from side wall (az 300)."
   },
 
   "simulation": {
