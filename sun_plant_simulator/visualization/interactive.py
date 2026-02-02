@@ -111,6 +111,29 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
     """Build the complete interactive HTML page."""
 
     # Convert config to JSON for JavaScript
+    window_payload = []
+    for w in config.windows:
+        entry = {
+            "id": w.id,
+            "wall_id": w.wall_id,
+            "center": w.center.tolist(),
+            "width": w.width,
+            "height": w.height,
+            "wall_normal_azimuth": w.wall_normal_azimuth,
+            "wall_thickness": w.wall_thickness,
+        }
+
+        if w.axis:
+            entry["axis"] = w.axis
+        if w.position_along_wall is not None:
+            entry["position_along_wall"] = w.position_along_wall
+            if w.axis == "x":
+                entry["x_position"] = w.position_along_wall
+            elif w.axis == "y":
+                entry["y_position"] = w.position_along_wall
+
+        window_payload.append(entry)
+
     config_json = json.dumps({
         "plant": {
             "center_x": config.plant.center_x,
@@ -124,21 +147,11 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
                 "id": wall.id,
                 "normal_azimuth": wall.outward_normal_azimuth_deg,
                 "thickness": next((w.wall_thickness for w in config.windows if w.wall_id == wall.id), 0.3),
+                "draw_length": wall.draw_length,
             }
             for wall in config.walls
         ],
-        "windows": [
-            {
-                "id": w.id,
-                "wall_id": w.wall_id,
-                "center": w.center.tolist(),
-                "width": w.width,
-                "height": w.height,
-                "wall_normal_azimuth": w.wall_normal_azimuth,
-                "wall_thickness": w.wall_thickness,
-            }
-            for w in config.windows
-        ],
+        "windows": window_payload,
     })
 
     results_json = json.dumps(results)
@@ -454,8 +467,23 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
         const originalConfig = {config_json};
         const sunPositions = {results_json};
 
+        function ensureWallDrawLengths(target) {{
+            if (!target.walls) {{
+                target.walls = [];
+            }}
+            target.walls.forEach(wall => {{
+                if (typeof wall.draw_length !== 'number') {{
+                    const fallback = wall.visualization?.wall_length ?? wall.visualization?.draw_length;
+                    wall.draw_length = typeof fallback === 'number' ? fallback : 15;
+                }}
+            }});
+        }}
+
+        ensureWallDrawLengths(originalConfig);
+
         // Active config (mutable, from localStorage or original)
         let config = JSON.parse(JSON.stringify(originalConfig));
+        ensureWallDrawLengths(config);
         let results = [];  // Will be recalculated
 
         // Simulation settings
@@ -470,6 +498,43 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
         // Room offset - moves room away from origin so sun can be rendered in all directions
         const ROOM_OFFSET_X = 30;
         const ROOM_OFFSET_Y = 30;
+
+        function getWindowAxis(window) {{
+            if (window.axis === 'x' || window.axis === 'y') {{
+                return window.axis;
+            }}
+            if (window.wall_id === 'wall_1') {{
+                return 'x';
+            }}
+            if (window.wall_id === 'wall_2') {{
+                return 'y';
+            }}
+            return (window.id || '').startsWith('window_1') ? 'x' : 'y';
+        }}
+
+        function getWindowPositionAlongWall(window) {{
+            if (typeof window.position_along_wall === 'number') {{
+                return window.position_along_wall;
+            }}
+            if (typeof window.x_position === 'number') {{
+                return window.x_position;
+            }}
+            if (typeof window.y_position === 'number') {{
+                return window.y_position;
+            }}
+            const axis = getWindowAxis(window);
+            if (window.center) {{
+                if (axis === 'x') {{
+                    return (window.center[0] || 0) - (window.width || 0) / 2;
+                }}
+                return (window.center[1] || 0) - (window.width || 0) / 2;
+            }}
+            return 0;
+        }}
+
+        function getWindowCenterAlongWall(window) {{
+            return getWindowPositionAlongWall(window) + (window.width || 0) / 2;
+        }}
 
         // ========== CONFIG PANEL FUNCTIONS ==========
 
@@ -495,6 +560,15 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
                     if (parsed.simulation) {{
                         simSettings = {{ ...simSettings, ...parsed.simulation }};
                     }}
+                    if (Array.isArray(parsed.wallDrawLengths)) {{
+                        parsed.wallDrawLengths.forEach(saved => {{
+                            const targetWall = config.walls?.find(w => w.id === saved.id);
+                            if (targetWall && typeof saved.draw_length === 'number') {{
+                                targetWall.draw_length = saved.draw_length;
+                            }}
+                        }});
+                    }}
+                    ensureWallDrawLengths(config);
                     console.log('Loaded config from localStorage:', parsed);
                 }}
             }} catch (e) {{
@@ -512,7 +586,10 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
                         z_max: config.plant.z_max
                     }},
                     wallThickness: config.windows[0]?.wall_thickness || 0,
-                    simulation: simSettings
+                    simulation: simSettings,
+                    wallDrawLengths: config.walls?.map(w => {{
+                        return {{ id: w.id, draw_length: w.draw_length }};
+                    }}) || [],
                 }};
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
 
@@ -558,6 +635,7 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
             if (confirm('Reset all settings to default values?')) {{
                 localStorage.removeItem(STORAGE_KEY);
                 config = JSON.parse(JSON.stringify(originalConfig));
+                ensureWallDrawLengths(config);
                 simSettings = {{ sampleAngular: 8, sampleVertical: 3 }};
                 populateConfigFields();
                 recalculateAllResults();
@@ -568,14 +646,30 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
         function exportConfig() {{
             const exportData = {{
                 plant: config.plant,
-                windows: config.windows.map(w => ({{
-                    id: w.id,
-                    center: w.center,
-                    width: w.width,
-                    height: w.height,
-                    wall_thickness: w.wall_thickness
-                }})),
-                simulation: simSettings
+                windows: config.windows.map(w => {{
+                    const axis = getWindowAxis(w);
+                    const position = getWindowPositionAlongWall(w);
+                    const base = {{
+                        id: w.id,
+                        wall_id: w.wall_id,
+                        axis,
+                        center: w.center,
+                        width: w.width,
+                        height: w.height,
+                        wall_thickness: w.wall_thickness,
+                        position_along_wall: position,
+                    }};
+
+                    if (axis === 'x') {{
+                        base.x_position = position;
+                    }} else if (axis === 'y') {{
+                        base.y_position = position;
+                    }}
+
+                    return base;
+                }}),
+                simulation: simSettings,
+                walls: config.walls,
             }};
             const blob = new Blob([JSON.stringify(exportData, null, 2)], {{ type: 'application/json' }});
             const url = URL.createObjectURL(blob);
@@ -632,11 +726,13 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
             if (sunSideCheck <= 0) return false;
 
             // Determine plane axis (wall 1 at y=0, wall 2 at x=0)
-            const isWall1 = Math.abs(window.center[1]) < Math.abs(window.center[0]);
+            const axis = getWindowAxis(window);
+            const isWall1 = axis === 'x';
             const planeAxis = isWall1 ? 1 : 0;
-            const innerCoord = window.center[planeAxis];
+            const innerCoord = window.center ? window.center[planeAxis] : 0;
             const thickness = window.wall_thickness || 0;
             const outerCoord = innerCoord - thickness;
+            const centerAlongWall = getWindowCenterAlongWall(window);
 
             // Helper to check intersection with axis-aligned plane
             function checkPlaneIntersection(planeCoord) {{
@@ -652,8 +748,8 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
 
                 // Check bounds
                 const localH = isWall1
-                    ? intersection[0] - window.center[0]
-                    : intersection[1] - window.center[1];
+                    ? intersection[0] - centerAlongWall
+                    : intersection[1] - centerAlongWall;
                 const localV = intersection[2] - window.center[2];
 
                 const withinH = Math.abs(localH) <= window.width / 2 + 1e-6;
@@ -743,11 +839,12 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
             const sunDir = result.sun_direction;
             const wallThickness = config.windows[0]?.wall_thickness || 0;
             const wallHeight = 6;
-            const wallLength = 15;
 
             // Get wall info
-            const wall1 = config.walls?.find(w => w.id === 'wall_1') || {{ normal_azimuth: 210, thickness: 0.3 }};
-            const wall2 = config.walls?.find(w => w.id === 'wall_2') || {{ normal_azimuth: 300, thickness: 0.3 }};
+            const wall1 = config.walls?.find(w => w.id === 'wall_1') || {{ normal_azimuth: 210, thickness: 0.3, draw_length: 15 }};
+            const wall2 = config.walls?.find(w => w.id === 'wall_2') || {{ normal_azimuth: 300, thickness: 0.3, draw_length: 15 }};
+            const wall1Length = typeof wall1.draw_length === 'number' ? wall1.draw_length : 15;
+            const wall2Length = typeof wall2.draw_length === 'number' ? wall2.draw_length : 15;
 
             // ========== COMPASS (ENU: X=East, Y=North) ==========
             const compassCenter = [ROOM_OFFSET_X - 3, ROOM_OFFSET_Y - 3, 0.1];
@@ -809,7 +906,7 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
             // ========== WALL 1 (at y=0, runs along X) ==========
             // Wall runs from corner along wall1Dir
             const w1InnerStart = [cornerX, cornerY];
-            const w1InnerEnd = [cornerX + wallLength * wall1Dir[0], cornerY + wallLength * wall1Dir[1]];
+            const w1InnerEnd = [cornerX + wall1Length * wall1Dir[0], cornerY + wall1Length * wall1Dir[1]];
             const w1OuterStart = [cornerX - wallThickness * wall1Normal[0], cornerY - wallThickness * wall1Normal[1]];
             const w1OuterEnd = [w1InnerEnd[0] - wallThickness * wall1Normal[0], w1InnerEnd[1] - wallThickness * wall1Normal[1]];
 
@@ -860,7 +957,7 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
             // ========== WALL 2 (normal at azimuth ${{wall2.normal_azimuth}}°) ==========
             // Wall runs from corner along wall2Dir
             const w2InnerStart = [cornerX, cornerY];
-            const w2InnerEnd = [cornerX + wallLength * wall2Dir[0], cornerY + wallLength * wall2Dir[1]];
+            const w2InnerEnd = [cornerX + wall2Length * wall2Dir[0], cornerY + wall2Length * wall2Dir[1]];
             const w2OuterStart = [cornerX - wallThickness * wall2Normal[0], cornerY - wallThickness * wall2Normal[1]];
             const w2OuterEnd = [w2InnerEnd[0] - wallThickness * wall2Normal[0], w2InnerEnd[1] - wallThickness * wall2Normal[1]];
 
@@ -913,8 +1010,8 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
             const floorCorners = [
                 [cornerX, cornerY],  // Corner
                 [w1InnerEnd[0], w1InnerEnd[1]],  // End of wall 1
-                [cornerX + wallLength * wall1Dir[0] + wallLength * wall2Dir[0],
-                 cornerY + wallLength * wall1Dir[1] + wallLength * wall2Dir[1]],  // Far corner
+                [cornerX + wall1Length * wall1Dir[0] + wall2Length * wall2Dir[0],
+                 cornerY + wall1Length * wall1Dir[1] + wall2Length * wall2Dir[1]],  // Far corner
                 [w2InnerEnd[0], w2InnerEnd[1]],  // End of wall 2
             ];
             traces.push({{
@@ -933,7 +1030,8 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
 
             // Add windows with sun exposure coloring (positioned on rotated walls)
             config.windows.forEach((w, i) => {{
-                const isWall1 = w.wall_id === 'wall_1' || w.id.startsWith('window_1');
+                const axis = getWindowAxis(w);
+                const isWall1 = axis === 'x';
                 const receivesSun = windowReceivesSun(w.wall_normal_azimuth, sunDir);
                 const thickness = w.wall_thickness || 0;
 
@@ -950,7 +1048,7 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
                 }}
 
                 // Window position along wall (from config x_position or y_position)
-                const wallPos = isWall1 ? (w.center[0] || 0) : (w.center[1] || 0);
+                const wallPos = getWindowCenterAlongWall(w);
                 const wallDir = isWall1 ? wall1Dir : wall2Dir;
                 const wallNormal = isWall1 ? wall1Normal : wall2Normal;
 
@@ -1105,9 +1203,10 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
                 const azRad = window.wall_normal_azimuth * Math.PI / 180;
                 const normal = [Math.sin(azRad), Math.cos(azRad), 0];
 
-                const isWall1 = window.id.startsWith('window_1');
+                const axis = getWindowAxis(window);
+                const isWall1 = axis === 'x';
                 const wallDir = isWall1 ? wall1Dir : wall2Dir;
-                const wallPos = isWall1 ? (window.center[0] || 0) : (window.center[1] || 0);
+                const wallPos = getWindowCenterAlongWall(window);
 
                 // Window center on wall (in world coordinates)
                 const windowCenter = [
@@ -1145,9 +1244,10 @@ def build_interactive_html(config: Config, results: list[dict], date_str: str = 
                     const receivesSunRay = windowReceivesSun(w.wall_normal_azimuth, sunDir);
                     if (!receivesSunRay) return;
 
-                    const isWall1 = w.id.startsWith('window_1');
+                    const axis = getWindowAxis(w);
+                    const isWall1 = axis === 'x';
                     const wallDir = isWall1 ? wall1Dir : wall2Dir;
-                    const wallPos = isWall1 ? (w.center[0] || 0) : (w.center[1] || 0);
+                    const wallPos = getWindowCenterAlongWall(w);
 
                     // Window center on rotated wall (in world coordinates)
                     const windowCenter = [

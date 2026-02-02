@@ -23,14 +23,20 @@
       "outward_normal_azimuth_deg": 210,
       "thickness": 0.25,
       "axis": "x",
-      "description": "Wall 1 runs along X-axis, 30cm thick wall"
+      "description": "Wall 1 runs along X-axis, 30cm thick wall",
+      "visualization": {
+        "wall_length": 15.0
+      }
     },
     {
       "id": "wall_2",
       "outward_normal_azimuth_deg": 300,
       "thickness": 0.25,
       "axis": "y",
-      "description": "Wall 2 runs along Y-axis, 30cm thick wall"
+      "description": "Wall 2 runs along Y-axis, 30cm thick wall",
+      "visualization": {
+        "wall_length": 15.0
+      }
     }
   ],
 
@@ -38,9 +44,8 @@
     {
       "id": "window_1a",
       "wall_id": "wall_1",
-      "x_position": 2.0,
-      "center": [2.0, 0.0, 4.95],
-      "width": 1.5,
+      "x_position": 0.975,
+      "width": 0.85,
       "height": 1.5,
       "z_bottom": 4.2,
       "z_top": 5.7
@@ -48,9 +53,8 @@
     {
       "id": "window_1b",
       "wall_id": "wall_1",
-      "x_position": 5.0,
-      "center": [5.0, 0.0, 4.95],
-      "width": 1.5,
+      "x_position": 1.575,
+      "width": 0.85,
       "height": 1.5,
       "z_bottom": 4.2,
       "z_top": 5.7
@@ -58,9 +62,8 @@
     {
       "id": "window_1c",
       "wall_id": "wall_1",
-      "x_position": 8.0,
-      "center": [8.0, 0.0, 4.95],
-      "width": 1.5,
+      "x_position": 7.575,
+      "width": 0.85,
       "height": 1.5,
       "z_bottom": 4.2,
       "z_top": 5.7
@@ -68,9 +71,8 @@
     {
       "id": "window_1d",
       "wall_id": "wall_1",
-      "x_position": 11.0,
-      "center": [11.0, 0.0, 4.95],
-      "width": 1.5,
+      "x_position": 10.575,
+      "width": 0.85,
       "height": 1.5,
       "z_bottom": 4.2,
       "z_top": 5.7
@@ -78,9 +80,8 @@
     {
       "id": "window_2a",
       "wall_id": "wall_2",
-      "y_position": 2.0,
-      "center": [0.0, 2.0, 4.95],
-      "width": 1.5,
+      "y_position": 1.575,
+      "width": 0.85,
       "height": 1.5,
       "z_bottom": 4.2,
       "z_top": 5.7
@@ -88,9 +89,8 @@
     {
       "id": "window_2b",
       "wall_id": "wall_2",
-      "y_position": 5.0,
-      "center": [0.0, 5.0, 4.95],
-      "width": 1.5,
+      "y_position": 4.575,
+      "width": 0.85,
       "height": 1.5,
       "z_bottom": 4.2,
       "z_top": 5.7
@@ -98,9 +98,8 @@
     {
       "id": "window_2c",
       "wall_id": "wall_2",
-      "y_position": 8.0,
-      "center": [0.0, 8.0, 4.95],
-      "width": 1.5,
+      "y_position": 7.575,
+      "width": 0.85,
       "height": 1.5,
       "z_bottom": 4.2,
       "z_top": 5.7
@@ -108,14 +107,15 @@
     {
       "id": "window_2d",
       "wall_id": "wall_2",
-      "y_position": 11.0,
-      "center": [0.0, 11.0, 4.95],
-      "width": 1.5,
+      "y_position": 10.575,
+      "width": 0.85,
       "height": 1.5,
       "z_bottom": 4.2,
       "z_top": 5.7
     }
   ],
+
+  "window_position_reference": "x_position and y_position measure the distance from the shared corner to the INNER edge along their respective walls. Window centers are derived as position + width/2 automatically.",
 
   "plant": {
     "dist_from_wall1": 8.0,

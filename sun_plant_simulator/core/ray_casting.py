@@ -164,11 +164,14 @@ def ray_window_intersection(
         # Sun is on the inside of the wall or parallel - can't shine through
         return RayIntersection(intersects=False)
 
-    # Determine plane properties based on window position (simplified axis-aligned geometry)
-    # Wall 1 windows have center[1] near 0 (y=0), plane_axis=1
-    # Wall 2 windows have center[0] near 0 (x=0), plane_axis=0
-    is_wall1 = abs(window.center[1]) < abs(window.center[0])
-    plane_axis = 1 if is_wall1 else 0
+    # Determine plane properties based on window axis (simplified axis-aligned geometry)
+    if window.axis == "x":
+        plane_axis = 1
+    elif window.axis == "y":
+        plane_axis = 0
+    else:
+        is_wall1 = abs(window.center[1]) < abs(window.center[0])
+        plane_axis = 1 if is_wall1 else 0
 
     # Inner plane coordinate (where window.center is located)
     inner_plane_coord = window.center[plane_axis]

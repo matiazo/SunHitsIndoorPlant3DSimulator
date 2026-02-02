@@ -39,6 +39,9 @@ class Window:
         wall_normal_azimuth: Outward normal azimuth in degrees (clockwise from North).
         wall_id: Optional reference to parent wall.
         wall_thickness: Thickness of the wall in meters (0 = thin plane model).
+        axis: Which room axis the wall runs along ("x" or "y" in simplified coords).
+        position_along_wall: Distance from the shared corner to the window's inner edge
+            measured along the wall axis. Stored so APIs can round-trip user input positions.
     """
 
     id: str
@@ -48,6 +51,8 @@ class Window:
     wall_normal_azimuth: float
     wall_id: Optional[str] = None
     wall_thickness: float = 0.0
+    axis: Optional[str] = None
+    position_along_wall: Optional[float] = None
 
     @property
     def normal(self) -> np.ndarray:
@@ -129,15 +134,11 @@ class Plant:
 
 @dataclass
 class Wall:
-    """A wall definition (minimal - just the normal azimuth).
-
-    Attributes:
-        id: Unique identifier for the wall.
-        outward_normal_azimuth_deg: Direction the wall faces (outward), in degrees.
-    """
+    """A wall definition including visualization metadata."""
 
     id: str
     outward_normal_azimuth_deg: float
+    draw_length: float = 15.0
 
 
 @dataclass
@@ -204,42 +205,148 @@ class Config:
     @classmethod
     def from_dict(cls, data: dict) -> Config:
         """Create configuration from a dictionary."""
-        walls = [
-            Wall(id=w["id"], outward_normal_azimuth_deg=w["outward_normal_azimuth_deg"])
-            for w in data.get("walls", [])
-        ]
+        viz_defaults = data.get("visualization", {})
+        global_wall_length = viz_defaults.get("wall_length")
 
-        # Build a dict of wall properties for quick lookup
-        wall_props = {}
+        walls: list[Wall] = []
+        wall_props: dict[str, dict[str, float | str | None]] = {}
         for w in data.get("walls", []):
-            wall_props[w["id"]] = {
-                "normal": w["outward_normal_azimuth_deg"],
-                "thickness": w.get("thickness", 0.0),
-                "axis": w.get("axis"),
+            wall_id = w["id"]
+            wall_normal = float(w["outward_normal_azimuth_deg"])
+            wall_thickness = float(w.get("thickness", 0.0) or 0.0)
+            wall_axis = w.get("axis")
+
+            viz_block = w.get("visualization", {}) or {}
+            specific_length = (
+                viz_block.get("wall_length")
+                or viz_block.get("draw_length")
+                or w.get("draw_length")
+                or w.get("wall_length")
+                or global_wall_length
+            )
+            draw_length = float(specific_length) if specific_length is not None else 15.0
+
+            walls.append(
+                Wall(
+                    id=wall_id,
+                    outward_normal_azimuth_deg=wall_normal,
+                    draw_length=draw_length,
+                )
+            )
+
+            wall_props[wall_id] = {
+                "normal": wall_normal,
+                "thickness": wall_thickness,
+                "axis": wall_axis,
+                "draw_length": draw_length,
             }
+
+        corner_data = data.get("corner", {})
+        corner_x = corner_data.get("x", 0.0)
+        corner_y = corner_data.get("y", 0.0)
+
+        def _infer_axis(window_dict: dict, window_wall_id: Optional[str]) -> Optional[str]:
+            axis = window_dict.get("axis")
+            if axis in {"x", "y"}:
+                return axis
+            if window_wall_id and window_wall_id in wall_props:
+                candidate = wall_props[window_wall_id].get("axis")
+                if candidate in {"x", "y"}:
+                    return candidate
+            center_val = window_dict.get("center")
+            if center_val:
+                # Windows on wall 1 (axis x) have |y| smaller than |x| in simplified coords
+                return "x" if abs(center_val[1]) <= abs(center_val[0]) else "y"
+            return None
+
+        def _derive_position(window_dict: dict, axis: Optional[str], center_val: Optional[list | tuple]) -> Optional[float]:
+            if axis == "x":
+                if window_dict.get("position_along_wall") is not None:
+                    return float(window_dict["position_along_wall"])
+                if window_dict.get("x_position") is not None:
+                    return float(window_dict["x_position"])
+                if center_val is not None:
+                    return float(center_val[0]) - float(window_dict["width"]) / 2 - corner_x
+            elif axis == "y":
+                if window_dict.get("position_along_wall") is not None:
+                    return float(window_dict["position_along_wall"])
+                if window_dict.get("y_position") is not None:
+                    return float(window_dict["y_position"])
+                if center_val is not None:
+                    return float(center_val[1]) - float(window_dict["width"]) / 2 - corner_y
+            return None
+
+        def _derive_center_z(window_dict: dict, center_val: Optional[list | tuple]) -> float:
+            z_bottom = window_dict.get("z_bottom")
+            z_top = window_dict.get("z_top")
+            if z_bottom is not None and z_top is not None:
+                return float(z_bottom + z_top) / 2.0
+            if center_val is not None and len(center_val) == 3:
+                return float(center_val[2])
+            raise ValueError(
+                f"Window {window_dict.get('id', '<unknown>')} must define z_bottom/z_top or center[2]"
+            )
 
         windows = []
         for w in data.get("windows", []):
-            # Find wall normal and thickness for this window
+            if "width" not in w or "height" not in w:
+                raise ValueError(f"Window {w.get('id', '<unknown>')} missing width/height")
+
+            width = float(w["width"])
+            height = float(w["height"])
+
             wall_id = w.get("wall_id")
             wall_normal = w.get("wall_normal_azimuth_deg")
-            wall_thickness = w.get("wall_thickness", 0.0)
+            wall_thickness = w.get("wall_thickness")
 
-            if wall_id and wall_id in wall_props:
-                if wall_normal is None:
-                    wall_normal = wall_props[wall_id]["normal"]
-                if wall_thickness == 0.0:
-                    wall_thickness = wall_props[wall_id]["thickness"]
+            wall_info = wall_props.get(wall_id, {})
+            if wall_normal is None:
+                wall_normal = wall_info.get("normal")
+            if wall_thickness is None or wall_thickness == 0.0:
+                wall_thickness = wall_info.get("thickness", 0.0)
+
+            if wall_normal is None:
+                raise ValueError(
+                    f"Window {w.get('id', '<unknown>')} missing wall_normal_azimuth information"
+                )
+
+            axis = _infer_axis(w, wall_id)
+            center_from_config = w.get("center")
+            position_along_wall = _derive_position(w, axis, center_from_config)
+            center_z = _derive_center_z(w, center_from_config)
+
+            if axis in {"x", "y"} and position_along_wall is not None:
+                if axis == "x":
+                    center_x = corner_x + position_along_wall + width / 2
+                    center_y = corner_y
+                else:
+                    center_y = corner_y + position_along_wall + width / 2
+                    center_x = corner_x
+            elif center_from_config is not None:
+                center_x = float(center_from_config[0])
+                center_y = float(center_from_config[1])
+                if axis == "x" and position_along_wall is None:
+                    position_along_wall = center_x - corner_x - width / 2
+                elif axis == "y" and position_along_wall is None:
+                    position_along_wall = center_y - corner_y - width / 2
+            else:
+                raise ValueError(
+                    f"Window {w.get('id', '<unknown>')} must provide either center or axis-aligned position"
+                )
+
+            window_center = np.array([center_x, center_y, center_z], dtype=float)
 
             windows.append(
                 Window(
                     id=w["id"],
-                    center=np.array(w["center"], dtype=float),
-                    width=w["width"],
-                    height=w["height"],
+                    center=window_center,
+                    width=width,
+                    height=height,
                     wall_normal_azimuth=wall_normal,
                     wall_id=wall_id,
-                    wall_thickness=wall_thickness,
+                    wall_thickness=wall_thickness or 0.0,
+                    axis=axis,
+                    position_along_wall=position_along_wall,
                 )
             )
 
@@ -331,18 +438,15 @@ class Config:
             "coordinate_system": self.coordinate_system,
             "units": self.units,
             "walls": [
-                {"id": w.id, "outward_normal_azimuth_deg": w.outward_normal_azimuth_deg}
+                {
+                    "id": w.id,
+                    "outward_normal_azimuth_deg": w.outward_normal_azimuth_deg,
+                    "visualization": {"wall_length": w.draw_length},
+                }
                 for w in self.walls
             ],
             "windows": [
-                {
-                    "id": w.id,
-                    "wall_id": w.wall_id,
-                    "center": w.center.tolist(),
-                    "width": w.width,
-                    "height": w.height,
-                    "wall_normal_azimuth_deg": w.wall_normal_azimuth,
-                }
+                self._window_to_dict(w)
                 for w in self.windows
             ],
             "plant": {
@@ -357,3 +461,28 @@ class Config:
                 "sample_points_vertical": self.simulation.sample_points_vertical,
             },
         }
+
+    @staticmethod
+    def _window_to_dict(window: Window) -> dict:
+        data = {
+            "id": window.id,
+            "wall_id": window.wall_id,
+            "center": window.center.tolist(),
+            "width": window.width,
+            "height": window.height,
+            "wall_normal_azimuth_deg": window.wall_normal_azimuth,
+            "wall_thickness": window.wall_thickness,
+        }
+
+        if window.axis:
+            data["axis"] = window.axis
+
+        if window.position_along_wall is not None:
+            if window.axis == "x":
+                data["x_position"] = window.position_along_wall
+            elif window.axis == "y":
+                data["y_position"] = window.position_along_wall
+            else:
+                data["position_along_wall"] = window.position_along_wall
+
+        return data

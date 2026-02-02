@@ -2,6 +2,10 @@
     "chat.tools.terminal.autoApprove": {
         "scp": true,
         "docker logs": true,
-        "docker exec": true
+        "docker exec": true,
+        "/^cd c:/repo/SunHitsIndoorPlant3DSimulator ; pytest tests/test_config_parsing\\.py$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }

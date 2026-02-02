@@ -20,6 +20,7 @@ sun_plant_simulator/simulator/time_range.py
 sun_plant_simulator/visualization/__init__.py
 sun_plant_simulator/visualization/interactive.py
 sun_plant_simulator/visualization/scene_builder.py
+tests/test_config_parsing.py
 tests/test_geometry.py
 tests/test_hit_test.py
 tests/test_ray_casting.py
