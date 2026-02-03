@@ -1,0 +1,10 @@
+{
+  "domain": "sun_shade_integration",
+  "name": "Sun Shade Integration",
+  "version": "1.0.0",
+  "documentation": "https://github.com/yourusername/sun-plant-simulator",
+  "requirements": ["numpy"],
+  "codeowners": [],
+  "iot_class": "local_polling",
+  "dependencies": ["sun"]
+}

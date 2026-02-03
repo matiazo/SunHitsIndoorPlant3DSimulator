@@ -53,6 +53,7 @@ class Window:
     wall_thickness: float = 0.0
     axis: Optional[str] = None
     position_along_wall: Optional[float] = None
+    shade_entity_id: Optional[str] = None
 
     @property
     def normal(self) -> np.ndarray:
@@ -158,6 +159,60 @@ class HitResult:
     hit_points: list[np.ndarray] = field(default_factory=list)
     sun_direction: Optional[np.ndarray] = None
     reason: Optional[str] = None
+
+
+@dataclass
+class WindowSunDetail:
+    """Sun exposure details for a single window.
+
+    Attributes:
+        window_id: Window identifier
+        is_in_sun: Whether window is receiving direct sunlight
+        sun_angle_to_normal_deg: Angle between sun and window normal (0-90 degrees)
+        intensity_factor: Relative intensity, cos(angle), range [0, 1]
+    """
+    window_id: str
+    is_in_sun: bool
+    sun_angle_to_normal_deg: float
+    intensity_factor: float
+
+
+@dataclass
+class WindowSunResult:
+    """Result of checking all windows for sun exposure.
+
+    Attributes:
+        windows_in_sun: List of window IDs currently receiving sun
+        window_details: Detailed info for each window
+        sun_azimuth_deg: Sun azimuth used for calculation
+        sun_elevation_deg: Sun elevation used for calculation
+        sun_direction: Sun direction vector (optional)
+        reason: Explanation if no windows in sun (e.g., "sun_below_horizon")
+    """
+    windows_in_sun: list[str]
+    window_details: dict[str, WindowSunDetail]
+    sun_azimuth_deg: float
+    sun_elevation_deg: float
+    sun_direction: Optional[np.ndarray] = None
+    reason: Optional[str] = None
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "windows_in_sun": self.windows_in_sun,
+            "window_details": {
+                wid: {
+                    "window_id": detail.window_id,
+                    "is_in_sun": detail.is_in_sun,
+                    "sun_angle_to_normal_deg": round(detail.sun_angle_to_normal_deg, 1),
+                    "intensity_factor": round(detail.intensity_factor, 3),
+                }
+                for wid, detail in self.window_details.items()
+            },
+            "sun_azimuth_deg": round(self.sun_azimuth_deg, 1),
+            "sun_elevation_deg": round(self.sun_elevation_deg, 1),
+            "reason": self.reason,
+        }
 
 
 @dataclass
@@ -347,6 +402,7 @@ class Config:
                     wall_thickness=wall_thickness or 0.0,
                     axis=axis,
                     position_along_wall=position_along_wall,
+                    shade_entity_id=w.get("shade_entity_id"),
                 )
             )
 
@@ -484,5 +540,8 @@ class Config:
                 data["y_position"] = window.position_along_wall
             else:
                 data["position_along_wall"] = window.position_along_wall
+
+        if window.shade_entity_id is not None:
+            data["shade_entity_id"] = window.shade_entity_id
 
         return data

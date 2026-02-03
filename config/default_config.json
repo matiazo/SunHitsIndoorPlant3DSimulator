@@ -48,7 +48,8 @@
       "width": 0.89,
       "height": 1.5,
       "z_bottom": 4.2,
-      "z_top": 5.7
+      "z_top": 5.7,
+      "shade_entity_id": "cover.living_room_front_shade_4"
     },
     {
       "id": "window_1b",
@@ -57,7 +58,8 @@
       "width": 0.89,
       "height": 1.5,
       "z_bottom": 4.2,
-      "z_top": 5.7
+      "z_top": 5.7,
+      "shade_entity_id": "cover.living_room_front_shade_3"
     },
     {
       "id": "window_1c",
@@ -66,7 +68,8 @@
       "width": 0.89,
       "height": 1.5,
       "z_bottom": 4.2,
-      "z_top": 5.7
+      "z_top": 5.7,
+      "shade_entity_id": "cover.living_room_front_shade_2"
     },
     {
       "id": "window_1d",
@@ -75,7 +78,8 @@
       "width": 0.89,
       "height": 1.5,
       "z_bottom": 4.2,
-      "z_top": 5.7
+      "z_top": 5.7,
+      "shade_entity_id": "cover.living_room_front_shade_1"
     },
     {
       "id": "window_2a",
@@ -84,7 +88,8 @@
       "width": 0.89,
       "height": 1.5,
       "z_bottom": 4.2,
-      "z_top": 5.7
+      "z_top": 5.7,
+      "shade_entity_id": "cover.living_room_side_shade_1"
     },
     {
       "id": "window_2b",
@@ -93,7 +98,8 @@
       "width": 0.89,
       "height": 1.5,
       "z_bottom": 4.2,
-      "z_top": 5.7
+      "z_top": 5.7,
+      "shade_entity_id": "cover.living_room_side_shade_2"
     },
     {
       "id": "window_2c",
@@ -102,7 +108,8 @@
       "width": 0.89,
       "height": 1.5,
       "z_bottom": 4.2,
-      "z_top": 5.7
+      "z_top": 5.7,
+      "shade_entity_id": "cover.living_room_side_shade_3"
     },
     {
       "id": "window_2d",
@@ -111,7 +118,8 @@
       "width": 0.89,
       "height": 1.5,
       "z_bottom": 4.2,
-      "z_top": 5.7
+      "z_top": 5.7,
+      "shade_entity_id": "cover.living_room_side_shade_4"
     }
   ],
 

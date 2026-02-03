@@ -211,3 +211,183 @@ def get_sunlight_state(
         return "below_horizon"
     else:
         return "no_window_path"
+
+
+# Window sun exposure functions
+
+
+def get_window_sun_status(
+    sun_azimuth: float,
+    sun_elevation: float,
+    config_path: Optional[Union[str, Path]] = None,
+) -> dict:
+    """Get sun exposure status for all windows.
+
+    This function checks which windows are receiving direct sunlight and returns
+    detailed information for each window including intensity and sun angle.
+
+    Args:
+        sun_azimuth: Current sun azimuth in degrees (from HA sun.sun entity).
+        sun_elevation: Current sun elevation in degrees (from HA sun.sun entity).
+        config_path: Optional path to config file.
+
+    Returns:
+        Dictionary with:
+        - windows_in_sun: List of window IDs currently receiving sun
+        - window_details: Dict mapping window_id to details (is_in_sun, angle, intensity)
+        - sun_azimuth_deg: The input azimuth
+        - sun_elevation_deg: The input elevation
+        - reason: Explanation if no windows in sun (e.g., "sun_below_horizon")
+
+    Example:
+        >>> status = get_window_sun_status(210, 30)
+        >>> print(f"Windows in sun: {status['windows_in_sun']}")
+        >>> for wid, details in status['window_details'].items():
+        ...     print(f"{wid}: {details['intensity_factor']:.2f}")
+    """
+    from ..core.window_sun import check_windows_from_config
+
+    config = load_config(config_path)
+    result = check_windows_from_config(
+        sun_azimuth_deg=sun_azimuth,
+        sun_elevation_deg=sun_elevation,
+        config=config,
+        use_ray_validation=True,
+    )
+
+    return result.to_dict()
+
+
+def check_window_sunlight(
+    window_id: str,
+    sun_azimuth: float,
+    sun_elevation: float,
+    config_path: Optional[Union[str, Path]] = None,
+) -> bool:
+    """Check if a specific window is currently receiving direct sunlight.
+
+    Simple boolean function for individual window checks. Useful for HA
+    command-line integrations and simple automations.
+
+    Args:
+        window_id: ID of the window to check (e.g., "window_1a").
+        sun_azimuth: Current sun azimuth in degrees.
+        sun_elevation: Current sun elevation in degrees.
+        config_path: Optional path to config file.
+
+    Returns:
+        True if the window is receiving direct sunlight, False otherwise.
+
+    Example:
+        >>> is_sunny = check_window_sunlight("window_1a", 210, 30)
+        >>> if is_sunny:
+        ...     print("Window 1A has sun!")
+    """
+    status = get_window_sun_status(sun_azimuth, sun_elevation, config_path)
+    return window_id in status["windows_in_sun"]
+
+
+def get_window_intensity(
+    window_id: str,
+    sun_azimuth: float,
+    sun_elevation: float,
+    config_path: Optional[Union[str, Path]] = None,
+) -> float:
+    """Get the sun intensity factor for a specific window.
+
+    Returns a value from 0.0 to 1.0 representing the relative intensity of
+    sunlight at the window. 1.0 means sun is directly perpendicular to window,
+    lower values mean sun is at an oblique angle. 0.0 means no direct sun.
+
+    Useful for advanced automations like HVAC load calculations or shade
+    positioning based on intensity.
+
+    Args:
+        window_id: ID of the window to check (e.g., "window_1a").
+        sun_azimuth: Current sun azimuth in degrees.
+        sun_elevation: Current sun elevation in degrees.
+        config_path: Optional path to config file.
+
+    Returns:
+        Intensity factor from 0.0 to 1.0. Returns 0.0 if window not in sun.
+
+    Example:
+        >>> intensity = get_window_intensity("window_1a", 210, 30)
+        >>> if intensity > 0.5:
+        ...     print("Strong sunlight, close shades!")
+    """
+    status = get_window_sun_status(sun_azimuth, sun_elevation, config_path)
+    window_detail = status["window_details"].get(window_id)
+
+    if window_detail is None:
+        return 0.0
+
+    return window_detail.get("intensity_factor", 0.0)
+
+
+def get_shade_sun_info(
+    shade_entity_id: str,
+    sun_azimuth: float,
+    sun_elevation: float,
+    config_path: Optional[Union[str, Path]] = None,
+) -> dict:
+    """Get sun exposure information by shade entity ID.
+
+    Query by shade entity ID instead of window ID. This is useful when you
+    want to check "Does this shade's window have sun?" without knowing the
+    underlying window ID.
+
+    Args:
+        shade_entity_id: HA entity ID of the shade (e.g., "cover.living_room_shade_1a").
+        sun_azimuth: Current sun azimuth in degrees.
+        sun_elevation: Current sun elevation in degrees.
+        config_path: Optional path to config file.
+
+    Returns:
+        Dictionary with:
+        - window_id: The window ID associated with this shade (or None)
+        - is_in_sun: Boolean indicating if window is receiving sun
+        - intensity: Intensity factor (0.0-1.0)
+        - angle: Sun angle to window normal in degrees
+
+    Example:
+        >>> info = get_shade_sun_info("cover.living_room_shade_1a", 210, 30)
+        >>> if info['is_in_sun'] and info['intensity'] > 0.5:
+        ...     print("Close the shade!")
+    """
+    config = load_config(config_path)
+
+    # Find window with matching shade_entity_id
+    matching_window = None
+    for window in config.windows:
+        if window.shade_entity_id == shade_entity_id:
+            matching_window = window
+            break
+
+    if matching_window is None:
+        return {
+            "window_id": None,
+            "is_in_sun": False,
+            "intensity": 0.0,
+            "angle": 90.0,
+            "error": f"No window found with shade_entity_id '{shade_entity_id}'",
+        }
+
+    # Get window sun status
+    status = get_window_sun_status(sun_azimuth, sun_elevation, config_path)
+    window_detail = status["window_details"].get(matching_window.id)
+
+    if window_detail is None:
+        return {
+            "window_id": matching_window.id,
+            "is_in_sun": False,
+            "intensity": 0.0,
+            "angle": 90.0,
+        }
+
+    return {
+        "window_id": matching_window.id,
+        "is_in_sun": window_detail["is_in_sun"],
+        "intensity": window_detail["intensity_factor"],
+        "angle": window_detail["sun_angle_to_normal_deg"],
+    }
