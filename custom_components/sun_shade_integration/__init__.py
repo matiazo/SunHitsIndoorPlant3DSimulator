@@ -15,7 +15,6 @@ Created entities per window:
 """
 
 import logging
-import sys
 from datetime import timedelta
 from typing import Any
 
@@ -23,6 +22,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.const import STATE_UNKNOWN, STATE_UNAVAILABLE
+import homeassistant.helpers.config_validation as cv
 
 from .const import (
     DOMAIN,
@@ -35,6 +35,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 PLATFORMS = ["binary_sensor", "sensor"]
 
 
@@ -51,11 +52,6 @@ def _build_config_dict(data: dict) -> dict:
             "sample_points_vertical": 3,
         },
     }
-
-
-async def async_setup(hass: HomeAssistant, config: dict):
-    """Set up the sun shade integration (YAML pass-through)."""
-    return True
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -77,15 +73,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     data = {**entry.data, **entry.options}
     update_interval = data.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
 
-    # Import sun simulator modules
-    sys.path.insert(0, "/sun-plant-simulator")
-
     try:
         from sun_plant_simulator.core.models import Config
         from sun_plant_simulator.core.window_sun import check_windows_from_config
     except ImportError as e:
-        _LOGGER.error("Failed to import sun simulator modules: %s", e)
-        _LOGGER.error("Make sure /sun-plant-simulator is mounted correctly")
+        _LOGGER.error("Failed to import sun_plant_simulator: %s", e)
+        _LOGGER.error(
+            "Install via HACS or manually: pip install sun-plant-simulator"
+        )
         return False
 
     # Build Config from entry data

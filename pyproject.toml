@@ -7,7 +7,7 @@ name = "sun-plant-simulator"
 version = "0.1.0"
 description = "A deterministic geometric simulator for sunlight-plant hit detection"
 readme = "README.md"
-license = {text = "MIT"}
+license = {file = "LICENSE"}
 requires-python = ">=3.10"
 authors = [
     {name = "Sun Plant Simulator Team"}
@@ -24,15 +24,17 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=1.24.0",
-    "plotly>=5.18.0",
-    "pydantic>=2.0.0",
-    "tzdata>=2023.3",
 ]
 
+[project.urls]
+Homepage = "https://github.com/matiazo/SunHitsIndoorPlant3DSimulator"
+Repository = "https://github.com/matiazo/SunHitsIndoorPlant3DSimulator"
+Issues = "https://github.com/matiazo/SunHitsIndoorPlant3DSimulator/issues"
+
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.4.0",
-]
+visualization = ["plotly>=5.18.0"]
+full = ["plotly>=5.18.0", "pydantic>=2.0.0", "tzdata>=2023.3"]
+dev = ["pytest>=7.4.0"]
 
 [project.scripts]
 sun-plant-sim = "sun_plant_simulator.cli:main"

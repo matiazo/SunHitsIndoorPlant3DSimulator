@@ -16,3 +16,4 @@ __pycache__/ # Python
 *.log
 *.temp
 *.pyc
+*.egg-info/

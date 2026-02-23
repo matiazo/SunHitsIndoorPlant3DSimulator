@@ -6,7 +6,19 @@
       "Bash(python -m pytest:*)",
       "Bash(python:*)",
       "Bash(ssh:*)",
-      "Bash(scp:*)"
+      "Bash(scp:*)",
+      "WebSearch",
+      "Bash(git -C C:repoSunHitsIndoorPlant3DSimulator log --oneline --all)",
+      "WebFetch(domain:developers.home-assistant.io)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:aarongodfrey.dev)",
+      "Bash(git -C \"C:\\\\repo\\\\SunHitsIndoorPlant3DSimulator\" log --oneline -10)",
+      "Bash(python3 -m py_compile:*)",
+      "Bash(python3:*)",
+      "Bash(findstr:*)",
+      "WebFetch(domain:www.home-assistant.io)",
+      "Bash(git commit:*)",
+      "WebFetch(domain:www.hacs.xyz)"
     ]
   }
 }
