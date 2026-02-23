@@ -47,14 +47,14 @@ Copy the updated files to your dell7050 server:
 
 ```bash
 # Core simulator modules
-scp sun_plant_simulator/core/models.py dell7050:/home/master/sun-plant-simulator/sun_plant_simulator/core/
-scp sun_plant_simulator/core/window_sun.py dell7050:/home/master/sun-plant-simulator/sun_plant_simulator/core/
+scp sun_hit_detector/core/models.py dell7050:/home/master/sun-hit-detector/sun_hit_detector/core/
+scp sun_hit_detector/core/window_sun.py dell7050:/home/master/sun-hit-detector/sun_hit_detector/core/
 
 # Home Assistant service functions
-scp sun_plant_simulator/homeassistant/service.py dell7050:/home/master/sun-plant-simulator/sun_plant_simulator/homeassistant/
+scp sun_hit_detector/homeassistant/service.py dell7050:/home/master/sun-hit-detector/sun_hit_detector/homeassistant/
 
 # CLI script
-scp check_plant_sun.py dell7050:/home/master/sun-plant-simulator/
+scp check_plant_sun.py dell7050:/home/master/sun-hit-detector/
 
 # Updated config with correct shade entity IDs
 scp config/default_config.json dell7050:/tmp/sun_plant_config.json
@@ -133,7 +133,7 @@ INFO (MainThread) [custom_components.sun_shade_integration] Sun shade integratio
 3. **Test CLI from inside container:**
    ```bash
    ssh dell7050
-   docker exec home-assistant python3 /sun-plant-simulator/check_plant_sun.py \
+   docker exec home-assistant python3 /sun-hit-detector/check_plant_sun.py \
      $(date +"%Y-%m-%d %H:%M:%S") \
      --config /config/sun_plant_config.json \
      --windows --json
@@ -225,7 +225,7 @@ ssh dell7050 "docker logs home-assistant | grep -A 10 sun_shade"
 
 **Common issues:**
 - Config file path incorrect: Check `/config/sun_plant_config.json` exists
-- Python path issue: Verify `/sun-plant-simulator` is mounted in container
+- Python path issue: Verify `/sun-hit-detector` is mounted in container
 - Syntax error in configuration.yaml: Validate YAML formatting
 
 ### Attributes Not Appearing
@@ -276,7 +276,7 @@ python examples/simulate_yearly_plant_sun.py
 
 ### Get shade info by entity ID:
 ```python
-from sun_plant_simulator.homeassistant.service import get_shade_sun_info
+from sun_hit_detector.homeassistant.service import get_shade_sun_info
 
 info = get_shade_sun_info(
     "cover.living_room_front_shade_4",
@@ -295,7 +295,7 @@ print(info)
 - Custom component: `c:\repo\SunHitsIndoorPlant3DSimulator\custom_components\sun_shade_integration\`
 
 ### On Server (Production):
-- Simulator: `/home/master/sun-plant-simulator/`
+- Simulator: `/home/master/sun-hit-detector/`
 - Config: `/home/master/homeassistant/sun_plant_config.json`
 - Custom component: `/home/master/homeassistant/custom_components/sun_shade_integration/`
 

@@ -15,10 +15,10 @@ Front wall is at Y=0, with outward normal pointing at azimuth 210° (southwest).
 import math
 import pytest
 import numpy as np
-from sun_plant_simulator.core.models import Config
-from sun_plant_simulator.core.geometry import sun_direction_from_angles
-from sun_plant_simulator.core.hit_test import check_sun_hits_plant
-from sun_plant_simulator.core.ray_casting import ray_window_intersection
+from sun_hit_detector.core.models import Config
+from sun_hit_detector.core.geometry import sun_direction_from_angles
+from sun_hit_detector.core.hit_test import check_sun_hits_plant
+from sun_hit_detector.core.ray_casting import ray_window_intersection
 
 
 # Load config dedicated to measurement validation

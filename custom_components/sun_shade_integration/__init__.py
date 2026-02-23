@@ -74,12 +74,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     update_interval = data.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
 
     try:
-        from sun_plant_simulator.core.models import Config
-        from sun_plant_simulator.core.window_sun import check_windows_from_config
+        from sun_hit_detector.core.models import Config
+        from sun_hit_detector.core.window_sun import check_windows_from_config
     except ImportError as e:
-        _LOGGER.error("Failed to import sun_plant_simulator: %s", e)
+        _LOGGER.error("Failed to import sun_hit_detector: %s", e)
         _LOGGER.error(
-            "Install via HACS or manually: pip install sun-plant-simulator"
+            "Install via HACS or manually: pip install sun-hit-detector"
         )
         return False
 

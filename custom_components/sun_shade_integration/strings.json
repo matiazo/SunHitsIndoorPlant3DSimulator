@@ -83,7 +83,7 @@
       "duplicate_wall_id": "A wall with this ID already exists",
       "duplicate_window_id": "A window with this ID already exists",
       "z_top_must_exceed_z_bottom": "Top Z must be greater than bottom Z",
-      "import_error": "Could not import sun_plant_simulator. Make sure /sun-plant-simulator is mounted."
+      "import_error": "Could not import sun_hit_detector. Make sure /sun-hit-detector is mounted."
     },
     "abort": {
       "already_configured": "Sun Shade Integration is already configured"

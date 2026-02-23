@@ -1,1 +1,1 @@
-"""Test suite for sun_plant_simulator."""
+"""Test suite for sun_hit_detector."""

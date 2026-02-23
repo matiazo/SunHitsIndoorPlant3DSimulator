@@ -27,9 +27,9 @@ from datetime import datetime, timedelta
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from sun_plant_simulator.core.models import Config
-from sun_plant_simulator.core.window_sun import check_windows_from_config
-from sun_plant_simulator.core.sun_position import calculate_sun_position
+from sun_hit_detector.core.models import Config
+from sun_hit_detector.core.window_sun import check_windows_from_config
+from sun_hit_detector.core.sun_position import calculate_sun_position
 
 
 def print_window_details(result: dict, verbose: bool = False):

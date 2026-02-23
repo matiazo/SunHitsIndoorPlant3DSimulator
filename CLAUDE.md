@@ -4,7 +4,7 @@
 
 ## Project Structure
 
-- `sun_plant_simulator/` — Core Python package: models, coordinate math, window sun checks, ray casting
+- `sun_hit_detector/` — Core Python package: models, coordinate math, window sun checks, ray casting
 - `custom_components/sun_shade_integration/` — HA custom integration (config flow v2, sensor entities)
 - `config/` — Default simulation config JSON
 - `examples/` — Standalone scripts for testing and yearly analysis
@@ -22,9 +22,9 @@
 
 | File | Purpose |
 |---|---|
-| `sun_plant_simulator/core/models.py` | `Config`, `Wall`, `Window`, `Plant`, `WindowSunResult` dataclasses; `Config.from_dict()` parses geometry |
-| `sun_plant_simulator/core/window_sun.py` | `check_windows_from_config()` — main sun exposure calculation |
-| `sun_plant_simulator/core/coordinates.py` | Coordinate transforms, `position_from_wall_distances()` |
+| `sun_hit_detector/core/models.py` | `Config`, `Wall`, `Window`, `Plant`, `WindowSunResult` dataclasses; `Config.from_dict()` parses geometry |
+| `sun_hit_detector/core/window_sun.py` | `check_windows_from_config()` — main sun exposure calculation |
+| `sun_hit_detector/core/coordinates.py` | Coordinate transforms, `position_from_wall_distances()` |
 | `custom_components/sun_shade_integration/__init__.py` | HA entry setup, `DataUpdateCoordinator`, `_build_config_dict()` |
 | `custom_components/sun_shade_integration/config_flow.py` | 4-step config wizard + menu-based options flow |
 
@@ -38,7 +38,7 @@
 
 ## Deployment
 
-Target: `master@kube1.local` — HA runs in Docker with `/sun-plant-simulator` volume mount. See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md).
+Target: `master@kube1.local` — HA runs in Docker with `/sun-hit-detector` volume mount. See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md).
 
 ## Development
 

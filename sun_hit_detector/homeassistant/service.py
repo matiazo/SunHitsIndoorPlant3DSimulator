@@ -17,7 +17,7 @@ Example Home Assistant automation:
 
 Example Python script (python_scripts/check_plant_sunlight.py):
     ```python
-    from sun_plant_simulator.homeassistant import check_sunlight
+    from sun_hit_detector.homeassistant import check_sunlight
 
     sun = hass.states.get("sun.sun")
     azimuth = float(sun.attributes.get("azimuth", 0))
@@ -102,7 +102,7 @@ def check_sunlight(
         True if plant is receiving direct sunlight through a window.
 
     Example:
-        >>> from sun_plant_simulator.homeassistant import check_sunlight
+        >>> from sun_hit_detector.homeassistant import check_sunlight
         >>> is_sunny = check_sunlight(azimuth=180, elevation=45)
         >>> if is_sunny:
         ...     print("Move the blinds!")

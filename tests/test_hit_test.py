@@ -3,11 +3,11 @@
 import numpy as np
 import pytest
 
-from sun_plant_simulator.core.hit_test import (
+from sun_hit_detector.core.hit_test import (
     check_sun_hits_plant,
     generate_plant_sample_points,
 )
-from sun_plant_simulator.core.models import Plant, Window
+from sun_hit_detector.core.models import Plant, Window
 
 
 def create_test_plant(

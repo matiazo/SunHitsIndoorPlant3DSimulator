@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sun-plant-simulator"
+name = "sun-hit-detector"
 version = "0.1.0"
 description = "A deterministic geometric simulator for sunlight-plant hit detection"
 readme = "README.md"
@@ -37,11 +37,11 @@ full = ["plotly>=5.18.0", "pydantic>=2.0.0", "tzdata>=2023.3"]
 dev = ["pytest>=7.4.0"]
 
 [project.scripts]
-sun-plant-sim = "sun_plant_simulator.cli:main"
+sun-hit-detect = "sun_hit_detector.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["sun_plant_simulator*"]
+include = ["sun_hit_detector*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
