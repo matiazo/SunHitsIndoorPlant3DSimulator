@@ -1,6 +1,7 @@
 {
   "permissions": {
     "allow": [
+      "Bash(cd:*)",
       "Bash(tree:*)",
       "Bash(pip install:*)",
       "Bash(python -m pytest:*)",
@@ -18,7 +19,15 @@
       "Bash(findstr:*)",
       "WebFetch(domain:www.home-assistant.io)",
       "Bash(git commit:*)",
-      "WebFetch(domain:www.hacs.xyz)"
+      "WebFetch(domain:www.hacs.xyz)",
+      "Bash(tail:*)",
+      "Bash(head:*)",
+      "Bash(cd /c/repo/SunHitsIndoorPlant3DSimulator)",
+      "Bash(cd /c/repo/SunHitsIndoorPlant3DSimulator && sleep 15 && gh pr checks 2 --watch 2>&1)",
+      "Bash(grep:*)",
+      "Bash(cd /c/repo/SunHitsIndoorPlant3DSimulator && gh release view v0.1.0 2>&1)",
+      "Bash(cd /c/repo/SunHitsIndoorPlant3DSimulator && sleep 10 && gh pr view 3 --json state,mergedAt,statusCheckRollup 2>&1)",
+      "Bash(pip show:*)"
     ]
   }
 }
