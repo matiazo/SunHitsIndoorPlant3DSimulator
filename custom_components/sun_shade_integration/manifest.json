@@ -1,12 +1,12 @@
 {
   "domain": "sun_shade_integration",
   "name": "Sun Shade Integration",
-  "version": "2.0.0",
+  "codeowners": ["@matiazo"],
+  "config_flow": true,
+  "dependencies": ["sun"],
   "documentation": "https://github.com/matiazo/SunHitsIndoorPlant3DSimulator",
+  "iot_class": "local_polling",
   "issue_tracker": "https://github.com/matiazo/SunHitsIndoorPlant3DSimulator/issues",
   "requirements": ["sun-plant-simulator", "numpy"],
-  "codeowners": ["@matiazo"],
-  "iot_class": "local_polling",
-  "dependencies": ["sun"],
-  "config_flow": true
+  "version": "2.0.0"
 }

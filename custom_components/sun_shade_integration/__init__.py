@@ -22,6 +22,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.const import STATE_UNKNOWN, STATE_UNAVAILABLE
+import homeassistant.helpers.config_validation as cv
 
 from .const import (
     DOMAIN,
@@ -34,6 +35,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 PLATFORMS = ["binary_sensor", "sensor"]
 
 
@@ -50,11 +52,6 @@ def _build_config_dict(data: dict) -> dict:
             "sample_points_vertical": 3,
         },
     }
-
-
-async def async_setup(hass: HomeAssistant, config: dict):
-    """Set up the sun shade integration (YAML pass-through)."""
-    return True
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
