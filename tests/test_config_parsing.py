@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from sun_plant_simulator.core.models import Config
+from sun_hit_detector.core.models import Config
 
 
 def _base_config_dict() -> dict:

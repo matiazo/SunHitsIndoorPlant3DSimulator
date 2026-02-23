@@ -18,9 +18,9 @@
 ## Sun Plant Simulator Integration
 
 ### Installation Location
-- **Host Path**: `/home/master/sun-plant-simulator/`
-- **Container Mount**: `/sun-plant-simulator:ro`
-- **Virtual Environment**: `/home/master/sun-plant-simulator/venv/`
+- **Host Path**: `/home/master/sun-hit-detector/`
+- **Container Mount**: `/sun-hit-detector:ro`
+- **Virtual Environment**: `/home/master/sun-hit-detector/venv/`
 
 ### Configuration Files
 - **Plant/Room Config**: `/home/master/homeassistant/sun_plant_config.json` (copy of `config/default_config.json`)
@@ -41,12 +41,12 @@
 
 ### Testing the Script Inside Container
 ```bash
-ssh dell7050 "docker exec home-assistant python3 /sun-plant-simulator/check_plant_sun.py --config /config/sun_plant_config.json"
+ssh dell7050 "docker exec home-assistant python3 /sun-hit-detector/check_plant_sun.py --config /config/sun_plant_config.json"
 ```
 
 ### Testing with JSON Output
 ```bash
-ssh dell7050 "docker exec home-assistant python3 /sun-plant-simulator/check_plant_sun.py --config /config/sun_plant_config.json --json"
+ssh dell7050 "docker exec home-assistant python3 /sun-hit-detector/check_plant_sun.py --config /config/sun_plant_config.json --json"
 ```
 
 ### View Home Assistant Logs
@@ -66,13 +66,13 @@ ssh dell7050 "cd /home/master && docker compose down home-assistant && docker co
 
 ### Copy Files to Server
 ```bash
-scp <local_file> dell7050:/home/master/sun-plant-simulator/
+scp <local_file> dell7050:/home/master/sun-hit-detector/
 ```
 
 ### Copy Config to Home Assistant (requires sudo)
 ```bash
 ssh -t dell7050  # Interactive session for sudo
-sudo cp /home/master/sun-plant-simulator/config/default_config.json /home/master/homeassistant/sun_plant_config.json
+sudo cp /home/master/sun-hit-detector/config/default_config.json /home/master/homeassistant/sun_plant_config.json
 ```
 
 ## Updating the Integration
@@ -80,12 +80,12 @@ sudo cp /home/master/sun-plant-simulator/config/default_config.json /home/master
 1. **Update Python files locally** in VS Code
 2. **Copy changed files to server**:
    ```bash
-   scp check_plant_sun.py dell7050:/home/master/sun-plant-simulator/
-   scp sun_plant_simulator/core/models.py dell7050:/home/master/sun-plant-simulator/sun_plant_simulator/core/
+   scp check_plant_sun.py dell7050:/home/master/sun-hit-detector/
+   scp sun_hit_detector/core/models.py dell7050:/home/master/sun-hit-detector/sun_hit_detector/core/
    ```
 3. **Test the script**:
    ```bash
-   ssh dell7050 "docker exec home-assistant python3 /sun-plant-simulator/check_plant_sun.py --config /config/sun_plant_config.json"
+   ssh dell7050 "docker exec home-assistant python3 /sun-hit-detector/check_plant_sun.py --config /config/sun_plant_config.json"
    ```
 4. **Restart Home Assistant** if configuration changed:
    ```bash
@@ -103,11 +103,11 @@ sudo cp /home/master/sun-plant-simulator/config/default_config.json /home/master
 │   ├── sun_plant_config.json   # Plant/room geometry config
 │   ├── automations.yaml
 │   └── ...
-└── sun-plant-simulator/        # This project (mounted as /sun-plant-simulator)
+└── sun-hit-detector/        # This project (mounted as /sun-hit-detector)
     ├── check_plant_sun.py      # CLI entry point for HA
     ├── config/
     │   └── default_config.json
-    ├── sun_plant_simulator/
+    ├── sun_hit_detector/
     │   ├── core/
     │   └── homeassistant/
     └── venv/                   # Python virtual environment
@@ -130,7 +130,7 @@ The script should always return exit code 0 for Home Assistant compatibility. If
 
 ### Sensor Not Updating
 - Check scan_interval (default 300 seconds = 5 minutes)
-- Verify command works: `docker exec home-assistant python3 /sun-plant-simulator/check_plant_sun.py --config /config/sun_plant_config.json`
+- Verify command works: `docker exec home-assistant python3 /sun-hit-detector/check_plant_sun.py --config /config/sun_plant_config.json`
 - Check HA logs: `docker logs home-assistant | grep command_line`
 
 ### Container Crash Loop

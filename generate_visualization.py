@@ -14,13 +14,13 @@ import sys
 from datetime import date, datetime
 from pathlib import Path
 
-from sun_plant_simulator.core.models import Config
-from sun_plant_simulator.core.sun_position import (
+from sun_hit_detector.core.models import Config
+from sun_hit_detector.core.sun_position import (
     generate_sun_data_for_date,
     get_sunrise_sunset,
     resolve_timezone_offset,
 )
-from sun_plant_simulator.visualization.interactive import create_time_slider_visualization
+from sun_hit_detector.visualization.interactive import create_time_slider_visualization
 
 
 def _format_utc_offset(hours: float) -> str:

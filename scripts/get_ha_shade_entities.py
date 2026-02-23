@@ -6,7 +6,7 @@ then generates the correct mapping for the sun simulator config file.
 
 Usage:
     # From Home Assistant host (via docker exec)
-    docker exec home-assistant python3 /sun-plant-simulator/scripts/get_ha_shade_entities.py
+    docker exec home-assistant python3 /sun-hit-detector/scripts/get_ha_shade_entities.py
 
     # Or with HA API (requires token)
     python get_ha_shade_entities.py --url http://homeassistant.local:8123 --token YOUR_TOKEN

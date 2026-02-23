@@ -18,13 +18,13 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from sun_plant_simulator.core.hit_test import check_sun_hits_plant, get_detailed_hit_info
-from sun_plant_simulator.core.models import Config
-from sun_plant_simulator.simulator.time_range import (
+from sun_hit_detector.core.hit_test import check_sun_hits_plant, get_detailed_hit_info
+from sun_hit_detector.core.models import Config
+from sun_hit_detector.simulator.time_range import (
     load_sun_data_from_json,
     simulate_time_range,
 )
-from sun_plant_simulator.visualization.scene_builder import build_scene, visualize_hit_test
+from sun_hit_detector.visualization.scene_builder import build_scene, visualize_hit_test
 
 
 def main():

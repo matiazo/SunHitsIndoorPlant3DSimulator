@@ -8,10 +8,10 @@ from datetime import date, datetime
 import numpy as np
 import pytest
 
-from sun_plant_simulator.core.geometry import sun_direction_from_angles
-from sun_plant_simulator.core.hit_test import check_sun_hits_plant
-from sun_plant_simulator.core.models import Config, Plant, Window
-from sun_plant_simulator.core.sun_position import (
+from sun_hit_detector.core.geometry import sun_direction_from_angles
+from sun_hit_detector.core.hit_test import check_sun_hits_plant
+from sun_hit_detector.core.models import Config, Plant, Window
+from sun_hit_detector.core.sun_position import (
     calculate_sun_position,
     generate_sun_data_for_date,
 )

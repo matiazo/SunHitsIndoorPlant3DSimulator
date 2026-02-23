@@ -28,9 +28,9 @@ from collections import defaultdict
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from sun_plant_simulator.core.models import Config
-from sun_plant_simulator.core.hit_test import check_sun_hits_plant
-from sun_plant_simulator.core.sun_position import calculate_sun_position
+from sun_hit_detector.core.models import Config
+from sun_hit_detector.core.hit_test import check_sun_hits_plant
+from sun_hit_detector.core.sun_position import calculate_sun_position
 
 
 def simulate_year(

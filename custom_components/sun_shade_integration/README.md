@@ -18,7 +18,7 @@ The integration periodically reads the sun's azimuth and elevation from Home Ass
 ## Prerequisites
 
 - Home Assistant with the `sun` integration enabled (included by default)
-- The `sun_plant_simulator` Python package mounted inside the HA container at `/sun-plant-simulator`
+- The `sun_hit_detector` Python package mounted inside the HA container at `/sun-hit-detector`
 
 ### Docker Compose Volume Mount
 
@@ -29,7 +29,7 @@ home-assistant:
   image: ghcr.io/home-assistant/home-assistant:2025.9.3
   volumes:
     - /home/master/homeassistant:/config
-    - /home/master/sun-plant-simulator:/sun-plant-simulator:ro
+    - /home/master/sun-hit-detector:/sun-hit-detector:ro
 ```
 
 ## Installation
@@ -139,7 +139,7 @@ If you previously used the JSON-file-based configuration (config flow VERSION 1)
 sun.sun entity (azimuth, elevation)
         |
         v
-check_windows_from_config()    <-- sun_plant_simulator 3D ray-casting
+check_windows_from_config()    <-- sun_hit_detector 3D ray-casting
         |
         v
 For each window with a mapped shade:
@@ -168,10 +168,10 @@ The update runs once immediately on startup and then at the configured interval.
 - Check that `manifest.json` has `"config_flow": true`
 - Restart Home Assistant after copying files
 
-### "Could not import sun_plant_simulator" error
+### "Could not import sun_hit_detector" error
 
-- Verify the volume mount exists: `docker exec home-assistant ls /sun-plant-simulator/sun_plant_simulator/`
-- Check docker-compose has `/home/master/sun-plant-simulator:/sun-plant-simulator:ro`
+- Verify the volume mount exists: `docker exec home-assistant ls /sun-hit-detector/sun_hit_detector/`
+- Check docker-compose has `/home/master/sun-hit-detector:/sun-hit-detector:ro`
 
 ### Attributes not appearing on shade entities
 
@@ -193,15 +193,15 @@ docker logs -f home-assistant 2>&1 | grep sun_shade
 
 ```bash
 # 1. Copy simulator package
-scp -r sun_plant_simulator master@<host>:/home/master/sun-plant-simulator-pkg
-ssh master@<host> "mkdir -p /home/master/sun-plant-simulator && mv /home/master/sun-plant-simulator-pkg /home/master/sun-plant-simulator/sun_plant_simulator"
+scp -r sun_hit_detector master@<host>:/home/master/sun-hit-detector-pkg
+ssh master@<host> "mkdir -p /home/master/sun-hit-detector && mv /home/master/sun-hit-detector-pkg /home/master/sun-hit-detector/sun_hit_detector"
 
 # 2. Copy custom component (via docker cp if custom_components is root-owned)
 scp -r custom_components/sun_shade_integration master@<host>:/tmp/sun_shade_integration
 ssh master@<host> "docker cp /tmp/sun_shade_integration home-assistant:/config/custom_components/sun_shade_integration"
 
 # 3. Add volume mount to docker-compose.yml (under home-assistant service volumes)
-#    - /home/master/sun-plant-simulator:/sun-plant-simulator:ro
+#    - /home/master/sun-hit-detector:/sun-hit-detector:ro
 
 # 4. Recreate container and start
 ssh master@<host> "docker rm home-assistant && cd /home/master && docker-compose up -d home-assistant"

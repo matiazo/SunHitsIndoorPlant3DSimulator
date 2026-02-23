@@ -29,13 +29,13 @@ from datetime import datetime
 # Add project to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from sun_plant_simulator.homeassistant.service import check_sunlight, get_sunlight_details
+from sun_hit_detector.homeassistant.service import check_sunlight, get_sunlight_details
 
 
 def get_current_sun_position(config_path: str | None = None):
     """Calculate current sun position based on location in config."""
-    from sun_plant_simulator.core.models import Config
-    from sun_plant_simulator.core.sun_position import calculate_sun_position
+    from sun_hit_detector.core.models import Config
+    from sun_hit_detector.core.sun_position import calculate_sun_position
 
     config = Config.from_json_file(config_path or "config/default_config.json")
     now = datetime.now()
@@ -86,7 +86,7 @@ def main():
 
         # Handle --windows flag
         if args.windows:
-            from sun_plant_simulator.homeassistant.service import get_window_sun_status, check_window_sunlight
+            from sun_hit_detector.homeassistant.service import get_window_sun_status, check_window_sunlight
             import json
 
             if args.json:

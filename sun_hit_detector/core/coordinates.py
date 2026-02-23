@@ -139,7 +139,7 @@ def print_coordinate_info(
     print(f"\nAngle between walls: {angle:.1f}°")
 
     print("\nTo convert wall distances to x/y:")
-    print("  from sun_plant_simulator.core.coordinates import position_from_wall_distances")
+    print("  from sun_hit_detector.core.coordinates import position_from_wall_distances")
     print(f"  x, y = position_from_wall_distances(dist1, dist2, {wall1_normal_azimuth}, {wall2_normal_azimuth})")
 
 

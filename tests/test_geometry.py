@@ -5,7 +5,7 @@ import math
 import numpy as np
 import pytest
 
-from sun_plant_simulator.core.geometry import (
+from sun_hit_detector.core.geometry import (
     angle_between_vectors,
     angles_from_sun_direction,
     normalize,

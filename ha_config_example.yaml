@@ -5,7 +5,7 @@
 # Copy the relevant sections to your configuration.yaml or packages.
 #
 # Prerequisites:
-#   1. Copy the sun_plant_simulator folder to your HA config directory
+#   1. Copy the sun_hit_detector folder to your HA config directory
 #   2. Copy check_plant_sun.py to your HA config directory
 #   3. Copy config/default_config.json to your HA config directory
 #   4. Install numpy: pip install numpy (in HA Python environment)
@@ -15,7 +15,7 @@
 #     ├── configuration.yaml
 #     ├── check_plant_sun.py
 #     ├── default_config.json  (or config/default_config.json)
-#     └── sun_plant_simulator/
+#     └── sun_hit_detector/
 #         ├── __init__.py
 #         ├── core/
 #         └── homeassistant/

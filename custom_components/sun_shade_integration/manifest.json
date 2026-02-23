@@ -7,6 +7,6 @@
   "documentation": "https://github.com/matiazo/SunHitsIndoorPlant3DSimulator",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/matiazo/SunHitsIndoorPlant3DSimulator/issues",
-  "requirements": ["sun-plant-simulator", "numpy"],
+  "requirements": ["sun-hit-detector", "numpy"],
   "version": "2.0.0"
 }

@@ -84,7 +84,7 @@ Repeat for all 8 windows, mapping each to its corresponding shade entity.
 
 ### Step 2: Update Config Parser
 
-**File:** `sun_plant_simulator\core\models.py` (MODIFY)
+**File:** `sun_hit_detector\core\models.py` (MODIFY)
 
 1. Add `shade_entity_id` field to Window class (after line 50):
 ```python
@@ -109,7 +109,7 @@ windows.append(
 
 ### Step 3: Add Data Models
 
-**File:** `sun_plant_simulator\core\models.py` (MODIFY)
+**File:** `sun_hit_detector\core\models.py` (MODIFY)
 
 Add two new dataclasses after the `HitResult` class (around line 160):
 
@@ -169,7 +169,7 @@ class WindowSunResult:
 
 ### Step 4: Create Window Sun Detection Module
 
-**File:** `sun_plant_simulator\core\window_sun.py` (NEW)
+**File:** `sun_hit_detector\core\window_sun.py` (NEW)
 
 Create new module with three main functions:
 
@@ -209,7 +209,7 @@ Create new module with three main functions:
 
 ### Step 5: Add Home Assistant Service Functions
 
-**File:** `sun_plant_simulator\homeassistant\service.py` (MODIFY)
+**File:** `sun_hit_detector\homeassistant\service.py` (MODIFY)
 
 Add four new functions at the end (after line 214):
 
@@ -255,7 +255,7 @@ Add new logic in `main()` after line 82:
 ```python
 # Handle --windows flag
 if args.windows:
-    from sun_plant_simulator.homeassistant.service import get_window_sun_status, check_window_sunlight
+    from sun_hit_detector.homeassistant.service import get_window_sun_status, check_window_sunlight
 
     if args.json:
         # JSON output with all window details
@@ -317,7 +317,7 @@ custom_components/
   "domain": "sun_shade_integration",
   "name": "Sun Shade Integration",
   "version": "1.0.0",
-  "documentation": "https://github.com/yourusername/sun-plant-simulator",
+  "documentation": "https://github.com/yourusername/sun-hit-detector",
   "requirements": ["numpy"],
   "codeowners": [],
   "iot_class": "local_polling",
@@ -364,9 +364,9 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
     # Import sun simulator modules
     import sys
-    sys.path.insert(0, "/sun-plant-simulator")
-    from sun_plant_simulator.core.models import Config
-    from sun_plant_simulator.core.window_sun import check_windows_from_config
+    sys.path.insert(0, "/sun-hit-detector")
+    from sun_hit_detector.core.models import Config
+    from sun_hit_detector.core.window_sun import check_windows_from_config
 
     # Load config
     try:
@@ -499,9 +499,9 @@ Document:
 ## Critical Files
 
 1. **`config\default_config.json`** - Add shade_entity_id mappings to window definitions
-2. **`sun_plant_simulator\core\models.py`** - Add shade_entity_id field to Window class, add WindowSunResult and WindowSunDetail classes
-3. **`sun_plant_simulator\core\window_sun.py`** - New module with all window sun detection logic
-4. **`sun_plant_simulator\homeassistant\service.py`** - Add HA service functions including get_shade_sun_info()
+2. **`sun_hit_detector\core\models.py`** - Add shade_entity_id field to Window class, add WindowSunResult and WindowSunDetail classes
+3. **`sun_hit_detector\core\window_sun.py`** - New module with all window sun detection logic
+4. **`sun_hit_detector\homeassistant\service.py`** - Add HA service functions including get_shade_sun_info()
 5. **`check_plant_sun.py`** - Extend CLI with --windows flag
 6. **`examples\test_window_sun.py`** - Local testing script
 7. **`custom_components\sun_shade_integration\__init__.py`** - Custom HA component that updates shade entity attributes
@@ -614,7 +614,7 @@ async_track_state_change_event(
 1. **CLI in Docker**:
    ```bash
    ssh dell7050
-   docker exec home-assistant python3 /sun-plant-simulator/check_plant_sun.py \
+   docker exec home-assistant python3 /sun-hit-detector/check_plant_sun.py \
      $(date) --config /config/sun_plant_config.json --windows --json
    ```
 
@@ -640,14 +640,14 @@ Implement and test all code changes locally on Windows machine.
 1. **Copy Core Modules**:
 ```bash
 # Core modules
-scp sun_plant_simulator/core/models.py dell7050:/home/master/sun-plant-simulator/sun_plant_simulator/core/
-scp sun_plant_simulator/core/window_sun.py dell7050:/home/master/sun-plant-simulator/sun_plant_simulator/core/
+scp sun_hit_detector/core/models.py dell7050:/home/master/sun-hit-detector/sun_hit_detector/core/
+scp sun_hit_detector/core/window_sun.py dell7050:/home/master/sun-hit-detector/sun_hit_detector/core/
 
 # Home Assistant integration (for CLI support)
-scp sun_plant_simulator/homeassistant/service.py dell7050:/home/master/sun-plant-simulator/sun_plant_simulator/homeassistant/
+scp sun_hit_detector/homeassistant/service.py dell7050:/home/master/sun-hit-detector/sun_hit_detector/homeassistant/
 
 # CLI (for standalone testing)
-scp check_plant_sun.py dell7050:/home/master/sun-plant-simulator/
+scp check_plant_sun.py dell7050:/home/master/sun-hit-detector/
 ```
 
 2. **Deploy Custom Component**:
@@ -715,7 +715,7 @@ ssh dell7050 "docker logs -f home-assistant | grep sun_shade"
    ```bash
    # Add shade_entity_id to each window in config
    # Verify config loads correctly
-   python -c "from sun_plant_simulator.core.models import Config; c = Config.from_json_file('config/default_config.json'); print([w.shade_entity_id for w in c.windows])"
+   python -c "from sun_hit_detector.core.models import Config; c = Config.from_json_file('config/default_config.json'); print([w.shade_entity_id for w in c.windows])"
    ```
 
 ### Phase 2: Home Assistant Testing (After Deployment)

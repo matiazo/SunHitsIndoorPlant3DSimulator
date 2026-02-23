@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from sun_plant_simulator.core.models import Window
-from sun_plant_simulator.core.ray_casting import (
+from sun_hit_detector.core.models import Window
+from sun_hit_detector.core.ray_casting import (
     ray_intersects_window,
     ray_window_intersection,
 )
