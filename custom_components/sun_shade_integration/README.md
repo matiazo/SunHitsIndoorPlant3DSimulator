@@ -2,18 +2,56 @@
 
 Custom Home Assistant integration that monitors sun position and updates shade (cover) entity attributes with real-time window sun exposure data.
 
+```
+                        * Sun
+                       /
+                      /  azimuth + elevation
+                     /
+   =================/=================
+   ||    WALL    |     |    WALL    ||
+   ||            |     |           ||          OUTSIDE
+   ||            |  W  |           ||
+   ||            |  I  |           ||
+   ||            |  N  | ray       ||
+   ||            |  D  |/          ||
+   =============|  O  |============/
+                |  W  |\
+                |     | \            +------------------------------+
+                +-----+  \          |  Home Assistant Entities      |
+                       \  \         |------------------------------|
+                    /---\--\        |  window_1a has sun:  ON       |
+       ROOM        | //  \ |       |  window_1a intensity: 78%     |
+                   | PLANT |       |  window_1a angle:    25 deg   |
+                   | \\  / |       |                               |
+                   +-------+       |  Plant sun start:  13:45      |
+                                   |  Plant sun end:    15:30      |
+                                   |  Plant sun duration: 120 min  |
+                                   +-------------------------------+
+```
+
 ## What It Does
 
-The integration periodically reads the sun's azimuth and elevation from Home Assistant's built-in `sun.sun` entity, runs a 3D ray-casting simulation against your room/window geometry, and writes the results as extra attributes on your shade entities.
+The integration periodically reads the sun's azimuth and elevation from Home Assistant's built-in `sun.sun` entity, runs a 3D ray-casting simulation against your room/window geometry, and exposes results as sensor entities.
 
-### Attributes Added to Shade Entities
+### Entities Created
 
-| Attribute | Type | Description |
+**Per window:**
+
+| Entity | Type | Description |
 |---|---|---|
-| `window_id` | string | The window ID associated with this shade (e.g. `window_1a`) |
-| `window_has_sun` | boolean | Whether the window is receiving direct sunlight |
-| `sun_intensity` | float (0.0-1.0) | Relative sun intensity factor based on angle of incidence |
-| `sun_angle_deg` | float (0-90) | Angle in degrees between the sun direction and the window normal |
+| `binary_sensor.<window>_has_sun` | Binary sensor | Whether the window is receiving direct sunlight |
+| `sensor.<window>_sun_intensity` | Sensor (%) | Relative sun intensity factor based on angle of incidence |
+| `sensor.<window>_sun_angle` | Sensor (°) | Angle between the sun direction and the window normal |
+
+**Plant-level (daily forecast):**
+
+| Entity | Type | Description |
+|---|---|---|
+| `sensor.plant_sun_start` | Timestamp | First time sun hits the plant today (like sunrise) |
+| `sensor.plant_sun_end` | Timestamp | Last time sun hits the plant today (like sunset) |
+| `sensor.plant_sun_duration` | Duration (min) | Total sun exposure on the plant today (like day length) |
+
+The plant forecast is computed once per day by scanning 5am-9pm at 15-minute intervals using the full 3D ray-casting engine. It recalculates automatically when the date changes.
 
 ## Prerequisites
 
@@ -136,25 +174,36 @@ If you previously used the JSON-file-based configuration (config flow VERSION 1)
 ## How It Works
 
 ```
-sun.sun entity (azimuth, elevation)
-        |
-        v
-check_windows_from_config()    <-- sun_hit_detector 3D ray-casting
-        |
-        v
-For each window with a mapped shade:
-  - Read current shade entity state
-  - Merge in window_has_sun, sun_intensity, sun_angle_deg attributes
-  - Write updated state back
+sun.sun entity (azimuth, elevation)             hass.config (lat, lon, tz)
+        │                                               │
+        ▼                                               ▼
+check_windows_from_config()              generate_sun_data_for_date()
+  3D ray-casting per window                scan 5am-9pm @ 15-min intervals
+        │                                               │
+        │                                               ▼
+        │                                check_sun_hits_plant_from_config()
+        │                                  full ray-cast per time step
+        │                                               │
+        ▼                                               ▼
+┌─────────────────────┐                  ┌─────────────────────────┐
+│  Per-window sensors │                  │  Plant forecast sensors │
+│  (every N seconds)  │                  │  (once per day, cached) │
+│                     │                  │                         │
+│  has_sun            │                  │  plant_sun_start        │
+│  intensity          │                  │  plant_sun_end          │
+│  angle              │                  │  plant_sun_duration     │
+└─────────────────────┘                  └─────────────────────────┘
 ```
 
-The update runs once immediately on startup and then at the configured interval.
+The per-window update runs once immediately on startup and then at the configured interval. The plant forecast computes once on the first update of each day and is cached until the date rolls over.
 
 ## File Reference
 
 | File | Purpose |
 |---|---|
-| `__init__.py` | Integration setup/teardown, `_build_config_dict()`, periodic sun calculation update loop |
+| `__init__.py` | Integration setup/teardown, `_build_config_dict()`, coordinator with real-time + daily forecast |
+| `sensor.py` | Window intensity/angle sensors + plant sun start/end/duration sensors |
+| `binary_sensor.py` | Window has-sun binary sensors |
 | `config_flow.py` | 4-step UI config flow (walls/windows/plant wizard) and options flow |
 | `const.py` | Domain name, config keys, attribute name constants |
 | `manifest.json` | Integration metadata, dependencies, config_flow flag |
