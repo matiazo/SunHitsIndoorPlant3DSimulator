@@ -12,10 +12,15 @@ Created entities per window:
 - binary_sensor.<window_id>_has_sun: Whether the window is receiving direct sun
 - sensor.<window_id>_sun_intensity: Intensity factor (0.0-1.0)
 - sensor.<window_id>_sun_angle: Angle between sun and window normal (0-90 degrees)
+
+Plant-level entities (daily forecast via ray-casting):
+- sensor.plant_sun_start: First time sun hits the plant today (timestamp)
+- sensor.plant_sun_end: Last time sun hits the plant today (timestamp)
+- sensor.plant_sun_duration: Total sun exposure duration today (minutes)
 """
 
 import logging
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -76,6 +81,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     try:
         from sun_hit_detector.core.models import Config
         from sun_hit_detector.core.window_sun import check_windows_from_config
+        from sun_hit_detector.core.sun_position import generate_sun_data_for_date
+        from sun_hit_detector.core.hit_test import check_sun_hits_plant_from_config
     except ImportError as e:
         _LOGGER.error("Failed to import sun_hit_detector: %s", e)
         _LOGGER.error(
@@ -98,8 +105,56 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.exception("Failed to build Config from entry data")
         return False
 
+    # Cache for daily plant forecast (recomputed only when date changes)
+    _forecast_cache: dict[str, Any] = {"date": None, "data": None}
+
+    def _compute_daily_plant_forecast(today: date) -> dict[str, Any]:
+        """Compute plant sun forecast for the entire day.
+
+        Scans sun positions at 15-minute intervals and uses the plant-level
+        ray-casting hit test to determine when sunlight reaches the plant.
+
+        Returns dict with sun_start, sun_end (HH:MM strings), and
+        sun_duration_min (int minutes). All None if no sun hits the plant.
+        """
+        latitude = hass.config.latitude
+        longitude = hass.config.longitude
+        tz_name = hass.config.time_zone
+
+        sun_data = generate_sun_data_for_date(
+            latitude=latitude,
+            longitude=longitude,
+            target_date=today,
+            timezone_name=tz_name,
+            interval_minutes=15,
+            start_hour=5,
+            end_hour=21,
+        )
+
+        first_hit: str | None = None
+        last_hit: str | None = None
+        hit_count = 0
+
+        for point in sun_data:
+            hit_result = check_sun_hits_plant_from_config(
+                sun_azimuth_deg=point["azimuth_deg"],
+                sun_elevation_deg=point["elevation_deg"],
+                config=sim_config,
+            )
+            if hit_result.is_hit:
+                hit_count += 1
+                if first_hit is None:
+                    first_hit = point["timestamp"]
+                last_hit = point["timestamp"]
+
+        return {
+            "sun_start": first_hit,
+            "sun_end": last_hit,
+            "sun_duration_min": hit_count * 15,
+        }
+
     async def _async_update_data() -> dict[str, Any]:
-        """Fetch sun data for all windows."""
+        """Fetch sun data for all windows and daily plant forecast."""
         sun_entity = hass.states.get("sun.sun")
         if not sun_entity or sun_entity.state in [STATE_UNKNOWN, STATE_UNAVAILABLE]:
             raise UpdateFailed("Sun entity not available")
@@ -128,6 +183,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "intensity_factor": round(detail.intensity_factor, 3),
                 "sun_angle_to_normal_deg": round(detail.sun_angle_to_normal_deg, 1),
             }
+
+        # Compute daily plant forecast (cached per date)
+        today = date.today()
+        if _forecast_cache["date"] != today:
+            try:
+                forecast = await hass.async_add_executor_job(
+                    _compute_daily_plant_forecast, today
+                )
+                _forecast_cache["date"] = today
+                _forecast_cache["data"] = forecast
+                _LOGGER.debug("Computed daily plant forecast for %s: %s", today, forecast)
+            except Exception:
+                _LOGGER.exception("Failed to compute daily plant forecast")
+                _forecast_cache["data"] = {
+                    "sun_start": None,
+                    "sun_end": None,
+                    "sun_duration_min": 0,
+                }
+
+        window_data["_plant_forecast"] = _forecast_cache["data"]
 
         _LOGGER.debug(
             "Sun update: azimuth=%.1f, elevation=%.1f, windows_in_sun=%s",
