@@ -1,0 +1,192 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "General Settings",
+        "description": "Configure the sun shade integration update interval.",
+        "data": {
+          "update_interval": "Update interval (seconds)"
+        },
+        "data_description": {
+          "update_interval": "How often to recalculate sun exposure (30–3600 seconds)"
+        }
+      },
+      "wall": {
+        "title": "Define Wall {wall_number}",
+        "description": "Enter the geometry for this wall and default window dimensions. Check 'Add another wall' to define more walls.",
+        "data": {
+          "wall_id": "Wall ID",
+          "outward_normal_azimuth_deg": "Outward normal azimuth (degrees)",
+          "wall_thickness": "Wall thickness (meters)",
+          "wall_axis": "Wall axis",
+          "window_count": "Number of windows on this wall",
+          "default_window_width": "Default window width (meters)",
+          "default_window_height": "Default window height (meters)",
+          "default_z_bottom": "Default window bottom Z (meters)",
+          "default_z_top": "Default window top Z (meters)",
+          "add_another_wall": "Add another wall"
+        },
+        "data_description": {
+          "wall_id": "Unique identifier for this wall (e.g. wall_1)",
+          "outward_normal_azimuth_deg": "Compass bearing of the wall's outward-facing normal (0=N, 90=E, 180=S, 270=W)",
+          "wall_thickness": "Thickness of the wall in meters",
+          "wall_axis": "Which coordinate axis the wall runs along (X or Y). Both walls meet at the corner origin.",
+          "window_count": "How many windows are on this wall",
+          "default_window_width": "Default width for windows on this wall",
+          "default_window_height": "Default height for windows on this wall",
+          "default_z_bottom": "Default bottom elevation of windows on this wall",
+          "default_z_top": "Default top elevation of windows on this wall"
+        }
+      },
+      "window": {
+        "title": "Window {window_number} on {wall_id} ({wall_axis}-axis)",
+        "description": "Position is measured along the {wall_axis}-axis from the corner where walls meet. Width, height, and Z values are pre-filled from wall defaults.",
+        "data": {
+          "window_id": "Window ID",
+          "position_along_wall": "Distance from corner along {wall_axis}-axis (meters)",
+          "window_width": "Window width (meters)",
+          "window_height": "Window height (meters)",
+          "z_bottom": "Window bottom Z (meters)",
+          "z_top": "Window top Z (meters)",
+          "shade_entity_id": "Shade entity (optional)"
+        },
+        "data_description": {
+          "window_id": "Unique identifier for this window (e.g. window_1a)",
+          "position_along_wall": "Distance from the corner origin to the inner edge of the window, measured along the {wall_axis}-axis",
+          "window_width": "Width of this window",
+          "window_height": "Height of this window",
+          "z_bottom": "Bottom elevation of this window",
+          "z_top": "Top elevation of this window",
+          "shade_entity_id": "Cover entity that controls the shade for this window"
+        }
+      },
+      "plant": {
+        "title": "Plant Position",
+        "description": "Define the plant location as perpendicular distances from each wall into the room.",
+        "data": {
+          "plant_dist_wall1": "Distance from {wall_1_id} (perpendicular, meters)",
+          "plant_dist_wall2": "Distance from {wall_2_id} (perpendicular, meters)",
+          "plant_radius": "Plant radius (meters)",
+          "plant_z_min": "Plant bottom Z (meters)",
+          "plant_z_max": "Plant top Z (meters)"
+        },
+        "data_description": {
+          "plant_dist_wall1": "Perpendicular distance from {wall_1_id} into the room to the plant center",
+          "plant_dist_wall2": "Perpendicular distance from {wall_2_id} into the room to the plant center",
+          "plant_radius": "Radius of the plant canopy",
+          "plant_z_min": "Bottom elevation of the plant",
+          "plant_z_max": "Top elevation of the plant"
+        }
+      }
+    },
+    "error": {
+      "duplicate_wall_id": "A wall with this ID already exists",
+      "duplicate_window_id": "A window with this ID already exists",
+      "z_top_must_exceed_z_bottom": "Top Z must be greater than bottom Z",
+      "import_error": "Could not import sun_plant_simulator. Make sure /sun-plant-simulator is mounted."
+    },
+    "abort": {
+      "already_configured": "Sun Shade Integration is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "menu_options": {
+          "opt_general": "General settings",
+          "opt_walls": "Walls",
+          "opt_windows": "Windows",
+          "opt_plant": "Plant position"
+        },
+        "description": "Current config: {wall_count} walls ({wall_list}), {window_count} windows ({window_list}), interval {update_interval}s."
+      },
+      "opt_general": {
+        "title": "General Settings",
+        "description": "Update the update interval.",
+        "data": {
+          "update_interval": "Update interval (seconds)"
+        },
+        "data_description": {
+          "update_interval": "How often to recalculate sun exposure (30–3600 seconds)"
+        }
+      },
+      "opt_walls": {
+        "title": "Walls",
+        "description": "Select a wall to edit, or add a new one.",
+        "data": {
+          "selected_wall": "Wall"
+        }
+      },
+      "edit_wall": {
+        "title": "Edit Wall {wall_number}",
+        "description": "Edit the geometry for this wall.",
+        "data": {
+          "wall_id": "Wall ID",
+          "outward_normal_azimuth_deg": "Outward normal azimuth (degrees)",
+          "wall_thickness": "Wall thickness (meters)",
+          "wall_axis": "Wall axis"
+        },
+        "data_description": {
+          "wall_id": "Unique identifier for this wall (e.g. wall_1)",
+          "outward_normal_azimuth_deg": "Compass bearing of the wall's outward-facing normal (0=N, 90=E, 180=S, 270=W)",
+          "wall_thickness": "Thickness of the wall in meters",
+          "wall_axis": "Which coordinate axis the wall runs along (X or Y). Both walls meet at the corner origin."
+        }
+      },
+      "opt_windows": {
+        "title": "Windows",
+        "description": "Select a window to edit, or add a new one.",
+        "data": {
+          "selected_window": "Window"
+        }
+      },
+      "edit_window": {
+        "title": "Edit Window",
+        "description": "Edit window properties. Position is measured along the {wall_axis}-axis from the corner.",
+        "data": {
+          "wall_id": "Wall",
+          "window_id": "Window ID",
+          "position_along_wall": "Distance from corner along {wall_axis}-axis (meters)",
+          "window_width": "Window width (meters)",
+          "window_height": "Window height (meters)",
+          "z_bottom": "Window bottom Z (meters)",
+          "z_top": "Window top Z (meters)",
+          "shade_entity_id": "Shade entity (optional)"
+        },
+        "data_description": {
+          "wall_id": "Which wall this window belongs to",
+          "window_id": "Unique identifier for this window (e.g. window_1a)",
+          "position_along_wall": "Distance from the corner origin to the inner edge of the window",
+          "window_width": "Width of this window",
+          "window_height": "Height of this window",
+          "z_bottom": "Bottom elevation of this window",
+          "z_top": "Top elevation of this window",
+          "shade_entity_id": "Cover entity that controls the shade for this window"
+        }
+      },
+      "opt_plant": {
+        "title": "Plant Position",
+        "description": "Edit the plant location as perpendicular distances from each wall into the room.",
+        "data": {
+          "plant_dist_wall1": "Distance from {wall_1_id} (perpendicular, meters)",
+          "plant_dist_wall2": "Distance from {wall_2_id} (perpendicular, meters)",
+          "plant_radius": "Plant radius (meters)",
+          "plant_z_min": "Plant bottom Z (meters)",
+          "plant_z_max": "Plant top Z (meters)"
+        },
+        "data_description": {
+          "plant_dist_wall1": "Perpendicular distance from {wall_1_id} into the room to the plant center",
+          "plant_dist_wall2": "Perpendicular distance from {wall_2_id} into the room to the plant center",
+          "plant_radius": "Radius of the plant canopy",
+          "plant_z_min": "Bottom elevation of the plant",
+          "plant_z_max": "Top elevation of the plant"
+        }
+      }
+    },
+    "error": {
+      "duplicate_wall_id": "A wall with this ID already exists",
+      "duplicate_window_id": "A window with this ID already exists",
+      "z_top_must_exceed_z_bottom": "Top Z must be greater than bottom Z"
+    }
+  }
+}

@@ -5,7 +5,8 @@
       "Bash(pip install:*)",
       "Bash(python -m pytest:*)",
       "Bash(python:*)",
-      "Bash(ssh:*)"
+      "Bash(ssh:*)",
+      "Bash(scp:*)"
     ]
   }
 }

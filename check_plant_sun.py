@@ -58,6 +58,10 @@ def main():
     parser.add_argument("elevation", nargs="?", type=float, help="Sun elevation angle")
     parser.add_argument("--config", type=str, help="Path to config file")
     parser.add_argument("--json", action="store_true", help="Output JSON format")
+    parser.add_argument("--windows", action="store_true",
+                       help="Output window sun status instead of plant status")
+    parser.add_argument("--window-id", type=str,
+                       help="Check specific window (with --windows, returns on/off)")
     
     args = parser.parse_args()
 
@@ -80,6 +84,30 @@ def main():
                 print("off")
                 sys.exit(0)
 
+        # Handle --windows flag
+        if args.windows:
+            from sun_plant_simulator.homeassistant.service import get_window_sun_status, check_window_sunlight
+            import json
+
+            if args.json:
+                # JSON output with all window details
+                status = get_window_sun_status(azimuth, elevation, config_path)
+                print(json.dumps(status))
+            elif args.window_id:
+                # Binary on/off for specific window
+                is_sunny = check_window_sunlight(args.window_id, azimuth, elevation, config_path)
+                print("on" if is_sunny else "off")
+            else:
+                # Human-readable list of windows in sun
+                status = get_window_sun_status(azimuth, elevation, config_path)
+                if status['windows_in_sun']:
+                    print("Windows in sun:", ", ".join(status['windows_in_sun']))
+                else:
+                    reason = status.get('reason', 'No windows receiving sun')
+                    print(reason)
+            sys.exit(0)
+
+        # Existing plant logic continues...
         if args.json:
             import json
             details = get_sunlight_details(azimuth, elevation, config_path)
