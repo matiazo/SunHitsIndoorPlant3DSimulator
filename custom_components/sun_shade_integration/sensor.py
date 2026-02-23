@@ -1,11 +1,14 @@
 """Sensor platform for Sun Shade Integration."""
 
+from datetime import datetime
+
 from homeassistant.components.sensor import (
+    SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import DEGREE, PERCENTAGE
+from homeassistant.const import DEGREE, PERCENTAGE, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import (
@@ -29,6 +32,12 @@ async def async_setup_entry(
     for window in windows:
         entities.append(WindowSunIntensitySensor(coordinator, entry, window))
         entities.append(WindowSunAngleSensor(coordinator, entry, window))
+
+    # Plant-level daily forecast sensors
+    entities.append(PlantSunStartSensor(coordinator, entry))
+    entities.append(PlantSunEndSensor(coordinator, entry))
+    entities.append(PlantSunDurationSensor(coordinator, entry))
+
     async_add_entities(entities)
 
 
@@ -89,3 +98,105 @@ class WindowSunAngleSensor(CoordinatorEntity, SensorEntity):
         if detail is None:
             return None
         return detail["sun_angle_to_normal_deg"]
+
+
+class PlantSunStartSensor(CoordinatorEntity, SensorEntity):
+    """Sensor reporting when sun first hits the plant today (like sunrise)."""
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}_plant_sun_start"
+        self._attr_name = "Plant sun start"
+
+    @property
+    def native_value(self) -> datetime | None:
+        """Return first time sun hits the plant today as a datetime."""
+        forecast = self._get_forecast()
+        if forecast is None or forecast.get("sun_start") is None:
+            return None
+        return self._time_str_to_datetime(forecast["sun_start"])
+
+    def _get_forecast(self) -> dict | None:
+        if self.coordinator.data is None:
+            return None
+        return self.coordinator.data.get("_plant_forecast")
+
+    def _time_str_to_datetime(self, time_str: str) -> datetime:
+        """Convert HH:MM string to today's datetime with timezone."""
+        from homeassistant.util import dt as dt_util
+
+        now = dt_util.now()
+        hour, minute = map(int, time_str.split(":"))
+        return now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+
+class PlantSunEndSensor(CoordinatorEntity, SensorEntity):
+    """Sensor reporting when sun last hits the plant today (like sunset)."""
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}_plant_sun_end"
+        self._attr_name = "Plant sun end"
+
+    @property
+    def native_value(self) -> datetime | None:
+        """Return last time sun hits the plant today as a datetime."""
+        forecast = self._get_forecast()
+        if forecast is None or forecast.get("sun_end") is None:
+            return None
+        return self._time_str_to_datetime(forecast["sun_end"])
+
+    def _get_forecast(self) -> dict | None:
+        if self.coordinator.data is None:
+            return None
+        return self.coordinator.data.get("_plant_forecast")
+
+    def _time_str_to_datetime(self, time_str: str) -> datetime:
+        """Convert HH:MM string to today's datetime with timezone."""
+        from homeassistant.util import dt as dt_util
+
+        now = dt_util.now()
+        hour, minute = map(int, time_str.split(":"))
+        return now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+
+class PlantSunDurationSensor(CoordinatorEntity, SensorEntity):
+    """Sensor reporting total sun exposure duration on the plant today."""
+
+    _attr_native_unit_of_measurement = UnitOfTime.MINUTES
+    _attr_device_class = SensorDeviceClass.DURATION
+    _attr_state_class = SensorStateClass.TOTAL
+
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{entry.entry_id}_plant_sun_duration"
+        self._attr_name = "Plant sun duration"
+
+    @property
+    def native_value(self) -> int | None:
+        """Return total sun exposure in minutes."""
+        if self.coordinator.data is None:
+            return None
+        forecast = self.coordinator.data.get("_plant_forecast")
+        if forecast is None:
+            return None
+        return forecast.get("sun_duration_min", 0)
