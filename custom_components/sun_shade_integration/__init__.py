@@ -82,7 +82,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         from sun_hit_detector.core.models import Config
         from sun_hit_detector.core.window_sun import check_windows_from_config
         from sun_hit_detector.core.sun_position import generate_sun_data_for_date
-        from sun_hit_detector.core.hit_test import check_sun_hits_plant_from_config
+        from sun_hit_detector.core.hit_test import (
+            check_sun_hits_plant_from_config,
+            check_plant_hit_per_window_from_config,
+        )
     except ImportError as e:
         _LOGGER.error("Failed to import sun_hit_detector: %s", e)
         _LOGGER.error(
@@ -175,11 +178,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         except Exception as err:
             raise UpdateFailed(f"Error computing sun exposure: {err}") from err
 
+        # Per-window plant hit test: does sun through each window reach the plant?
+        try:
+            plant_hits = await hass.async_add_executor_job(
+                check_plant_hit_per_window_from_config,
+                azimuth,
+                elevation,
+                sim_config,
+            )
+        except Exception as err:
+            raise UpdateFailed(f"Error computing plant hits: {err}") from err
+
         # Convert to a plain dict keyed by window_id
         window_data: dict[str, Any] = {}
         for window_id, detail in result.window_details.items():
             window_data[window_id] = {
-                "is_in_sun": detail.is_in_sun,
+                "is_in_sun": plant_hits.get(window_id, False),
                 "intensity_factor": round(detail.intensity_factor, 3),
                 "sun_angle_to_normal_deg": round(detail.sun_angle_to_normal_deg, 1),
             }
