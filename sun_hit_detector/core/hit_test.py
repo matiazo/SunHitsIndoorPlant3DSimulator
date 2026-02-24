@@ -155,6 +155,68 @@ def check_sun_hits_plant_from_config(
     )
 
 
+def check_plant_hit_per_window(
+    sun_azimuth_deg: float,
+    sun_elevation_deg: float,
+    plant: Plant,
+    windows: list[Window],
+    n_angular: int = 8,
+    n_vertical: int = 3,
+    wall1_normal_azimuth: float = 210.0,
+) -> dict[str, bool]:
+    """Check which windows deliver sunlight to the plant.
+
+    Same ray-casting as check_sun_hits_plant but returns per-window results
+    so each window can be controlled independently.
+
+    Args:
+        sun_azimuth_deg: Sun azimuth in degrees, clockwise from North [0, 360).
+        sun_elevation_deg: Sun elevation above horizon in degrees [-90, +90].
+        plant: Plant geometry definition.
+        windows: List of window definitions.
+        n_angular: Number of angular divisions for plant sampling.
+        n_vertical: Number of vertical divisions for plant sampling.
+        wall1_normal_azimuth: Real-world azimuth of wall 1's outward normal.
+
+    Returns:
+        Dict mapping window_id to bool (True if plant receives sun through
+        that window).
+    """
+    result = {w.id: False for w in windows}
+
+    if sun_elevation_deg <= 0:
+        return result
+
+    sun_dir = sun_direction_simplified(
+        sun_azimuth_deg, sun_elevation_deg, wall1_normal_azimuth
+    )
+    sample_points = generate_plant_sample_points(plant, n_angular, n_vertical)
+
+    for point in sample_points:
+        for window in windows:
+            if ray_intersects_window(point, sun_dir, window):
+                result[window.id] = True
+                break
+
+    return result
+
+
+def check_plant_hit_per_window_from_config(
+    sun_azimuth_deg: float,
+    sun_elevation_deg: float,
+    config: Config,
+) -> dict[str, bool]:
+    """Convenience wrapper using a Config object."""
+    return check_plant_hit_per_window(
+        sun_azimuth_deg=sun_azimuth_deg,
+        sun_elevation_deg=sun_elevation_deg,
+        plant=config.plant,
+        windows=config.windows,
+        n_angular=config.simulation.sample_points_angular,
+        n_vertical=config.simulation.sample_points_vertical,
+    )
+
+
 def get_detailed_hit_info(
     sun_azimuth_deg: float,
     sun_elevation_deg: float,
