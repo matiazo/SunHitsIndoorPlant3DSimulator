@@ -1,48 +1,41 @@
 #!/usr/bin/env python3
-"""Command-line tool for Home Assistant integration.
+"""Command-line tool for checking plant sunlight.
 
-This script is designed to be called by Home Assistant's command_line sensor.
-It reads sun position and returns whether the plant receives direct sunlight.
+Uses the core sun_hit_detector library directly to determine whether
+direct sunlight reaches the plant through any window.
 
 Usage:
-    # With explicit sun position:
-    python check_plant_sun.py <azimuth> <elevation> [config_path]
-    python check_plant_sun.py 180 45
-
-    # Auto-calculate sun position from config (standalone mode):
-    python check_plant_sun.py --config /path/to/config.json
-    python check_plant_sun.py --config /path/to/config.json --json
+    python check_plant_sun.py <azimuth> <elevation> [--config path]
+    python check_plant_sun.py --config config/default_config.json
+    python check_plant_sun.py --config config/default_config.json --json
+    python check_plant_sun.py --config config/default_config.json --windows
 
 Returns:
     Prints "on" if plant receives sunlight, "off" otherwise.
-    Exit code 0 on success.
-
-Home Assistant Configuration Example:
-    See ha_config_example.yaml in this directory.
 """
 
 import sys
+import json
 import argparse
 from pathlib import Path
 from datetime import datetime
 
-# Add project to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from sun_hit_detector.homeassistant.service import check_sunlight, get_sunlight_details
+from sun_hit_detector.core.models import Config
+from sun_hit_detector.core.hit_test import (
+    check_sun_hits_plant_from_config,
+    check_plant_hit_per_window_from_config,
+)
+from sun_hit_detector.core.window_sun import check_windows_from_config
+from sun_hit_detector.core.sun_position import calculate_sun_position
 
 
-def get_current_sun_position(config_path: str | None = None):
+def get_current_sun_position(config: Config):
     """Calculate current sun position based on location in config."""
-    from sun_hit_detector.core.models import Config
-    from sun_hit_detector.core.sun_position import calculate_sun_position
-
-    config = Config.from_json_file(config_path or "config/default_config.json")
-    now = datetime.now()
-
     if config.location is None:
         raise ValueError("Config does not include location data")
-
+    now = datetime.now()
     sun_pos = calculate_sun_position(
         config.location.latitude,
         config.location.longitude,
@@ -56,74 +49,56 @@ def main():
     parser = argparse.ArgumentParser(description="Check if plant receives direct sunlight")
     parser.add_argument("azimuth", nargs="?", type=float, help="Sun azimuth angle")
     parser.add_argument("elevation", nargs="?", type=float, help="Sun elevation angle")
-    parser.add_argument("--config", type=str, help="Path to config file")
+    parser.add_argument("--config", type=str, default="config/default_config.json",
+                       help="Path to config JSON file")
     parser.add_argument("--json", action="store_true", help="Output JSON format")
     parser.add_argument("--windows", action="store_true",
                        help="Output window sun status instead of plant status")
-    parser.add_argument("--window-id", type=str,
-                       help="Check specific window (with --windows, returns on/off)")
-    
+
     args = parser.parse_args()
 
     try:
-        # Get sun position
+        config = Config.from_json_file(args.config)
+
         if args.azimuth is not None and args.elevation is not None:
-            azimuth = args.azimuth
-            elevation = args.elevation
-            config_path = args.config
-        elif args.config:
-            # Auto-calculate sun position from config
-            azimuth, elevation = get_current_sun_position(args.config)
-            config_path = args.config
+            azimuth, elevation = args.azimuth, args.elevation
         else:
-            # No arguments - try default config
-            try:
-                azimuth, elevation = get_current_sun_position()
-                config_path = None
-            except Exception:
-                print("off")
-                sys.exit(0)
+            azimuth, elevation = get_current_sun_position(config)
 
-        # Handle --windows flag
         if args.windows:
-            from sun_hit_detector.homeassistant.service import get_window_sun_status, check_window_sunlight
-            import json
-
+            window_result = check_windows_from_config(azimuth, elevation, config)
+            plant_hits = check_plant_hit_per_window_from_config(azimuth, elevation, config)
             if args.json:
-                # JSON output with all window details
-                status = get_window_sun_status(azimuth, elevation, config_path)
-                print(json.dumps(status))
-            elif args.window_id:
-                # Binary on/off for specific window
-                is_sunny = check_window_sunlight(args.window_id, azimuth, elevation, config_path)
-                print("on" if is_sunny else "off")
+                output = window_result.to_dict()
+                output["plant_hits_per_window"] = plant_hits
+                print(json.dumps(output))
             else:
-                # Human-readable list of windows in sun
-                status = get_window_sun_status(azimuth, elevation, config_path)
-                if status['windows_in_sun']:
-                    print("Windows in sun:", ", ".join(status['windows_in_sun']))
-                else:
-                    reason = status.get('reason', 'No windows receiving sun')
-                    print(reason)
+                for wid, detail in window_result.window_details.items():
+                    plant_hit = "→ HITS PLANT" if plant_hits.get(wid) else ""
+                    sun = "☀" if detail.is_in_sun else "·"
+                    print(f"  {sun} {wid}: intensity={detail.intensity_factor:.2f} "
+                          f"angle={detail.sun_angle_to_normal_deg:.0f}° {plant_hit}")
             sys.exit(0)
 
-        # Existing plant logic continues...
+        result = check_sun_hits_plant_from_config(azimuth, elevation, config)
         if args.json:
-            import json
-            details = get_sunlight_details(azimuth, elevation, config_path)
-            print(json.dumps(details))
+            print(json.dumps({
+                "is_hit": result.is_hit,
+                "window_id": result.window_id,
+                "reason": result.reason,
+                "sun_azimuth": azimuth,
+                "sun_elevation": elevation,
+            }))
         else:
-            is_hit = check_sunlight(azimuth, elevation, config_path)
-            print("on" if is_hit else "off")
+            print("on" if result.is_hit else "off")
 
     except Exception as e:
         if args.json:
-            import json
             print(json.dumps({"is_hit": False, "error": str(e)}))
         else:
             print("off", file=sys.stdout)
             print(f"Error: {e}", file=sys.stderr)
-        sys.exit(0)  # Always exit 0 for HA compatibility
+        sys.exit(0)
 
 
 if __name__ == "__main__":
