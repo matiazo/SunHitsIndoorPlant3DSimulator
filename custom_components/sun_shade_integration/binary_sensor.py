@@ -6,6 +6,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -44,9 +45,21 @@ class WindowHasSunBinarySensor(CoordinatorEntity, BinarySensorEntity):
     ) -> None:
         """Initialize the binary sensor."""
         super().__init__(coordinator)
+        self._entry_id = entry.entry_id
         self._window_id = window["id"]
         self._attr_unique_id = f"{entry.entry_id}_{self._window_id}_has_sun"
         self._attr_name = f"{self._window_id} has sun"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info to group under window device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"{self._entry_id}_{self._window_id}")},
+            name=f"Window {self._window_id}",
+            manufacturer="Sun Shade Integration",
+            model="Window Sun Sensor",
+            via_device=(DOMAIN, self._entry_id),
+        )
 
     @property
     def is_on(self) -> bool | None:

@@ -50,6 +50,8 @@ from .const import (
     CONF_PLANT_Z_MIN,
     CONF_PLANT_Z_MAX,
     DEFAULT_UPDATE_INTERVAL,
+    CONF_CONFIG_FILE_PATH,
+    DEFAULT_CONFIG_FILE_PATH,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -315,15 +317,127 @@ class SunShadeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Step 1: General settings."""
+        """Entry point: show menu to choose manual or JSON import."""
+        return self.async_show_menu(
+            step_id="user",
+            menu_options=["manual", "import_file"],
+        )
+
+    async def async_step_manual(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Manual config: general settings (update interval)."""
         if user_input is not None:
             self._update_interval = int(user_input[CONF_UPDATE_INTERVAL])
             self._wall_counter = 0
             return await self.async_step_wall()
 
         return self.async_show_form(
-            step_id="user",
+            step_id="general",
             data_schema=_user_schema(),
+        )
+
+    async def async_step_general(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Alias so HA can route the 'general' step_id form submission."""
+        return await self.async_step_manual(user_input)
+
+    async def async_step_import_file(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Import configuration from a JSON file."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            file_path = user_input.get(CONF_CONFIG_FILE_PATH, "").strip()
+            try:
+                import json
+                from pathlib import Path
+
+                path = Path(file_path)
+                raw = await self.hass.async_add_executor_job(path.read_text)
+                raw_dict = json.loads(raw)
+
+                from sun_hit_detector.core.models import Config
+                await self.hass.async_add_executor_job(Config.from_dict, raw_dict)
+
+                # Convert walls
+                walls = []
+                for w in raw_dict.get("walls", []):
+                    walls.append({
+                        "id": w["id"],
+                        "outward_normal_azimuth_deg": w["outward_normal_azimuth_deg"],
+                        "thickness": w.get("thickness", 0),
+                        "axis": w.get("axis", "x"),
+                    })
+
+                # Convert windows
+                windows = []
+                for w in raw_dict.get("windows", []):
+                    pos = (
+                        w.get("position_along_wall")
+                        or w.get("x_position")
+                        or w.get("y_position", 0)
+                    )
+                    windows.append({
+                        "id": w["id"],
+                        "wall_id": w["wall_id"],
+                        "position_along_wall": pos,
+                        "width": w["width"],
+                        "height": w["height"],
+                        "z_bottom": w["z_bottom"],
+                        "z_top": w["z_top"],
+                        "shade_entity_id": w.get("shade_entity_id"),
+                    })
+
+                # Convert plant
+                p = raw_dict.get("plant", {})
+                plant = {
+                    "dist_from_wall1": p["dist_from_wall1"],
+                    "dist_from_wall2": p["dist_from_wall2"],
+                    "radius": p["radius"],
+                    "z_min": p["z_min"],
+                    "z_max": p["z_max"],
+                }
+
+                update_interval = raw_dict.get(
+                    "update_interval", DEFAULT_UPDATE_INTERVAL
+                )
+
+                await self.async_set_unique_id(DOMAIN)
+                self._abort_if_unique_id_configured()
+
+                return self.async_create_entry(
+                    title="Sun Shade Integration",
+                    data={
+                        CONF_UPDATE_INTERVAL: int(update_interval),
+                        CONF_WALLS: walls,
+                        CONF_WINDOWS: windows,
+                        CONF_PLANT: plant,
+                    },
+                )
+            except FileNotFoundError:
+                errors["base"] = "import_error"
+                self._import_error_detail = f"File not found: {file_path}"
+            except Exception as exc:  # noqa: BLE001
+                errors["base"] = "import_error"
+                self._import_error_detail = str(exc)
+
+        return self.async_show_form(
+            step_id="import_file",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_CONFIG_FILE_PATH,
+                        default=DEFAULT_CONFIG_FILE_PATH,
+                    ): TextSelector(TextSelectorConfig()),
+                }
+            ),
+            errors=errors,
+            description_placeholders={
+                "error": getattr(self, "_import_error_detail", ""),
+            },
         )
 
     async def async_step_wall(

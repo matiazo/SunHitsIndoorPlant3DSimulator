@@ -2,6 +2,14 @@
   "config": {
     "step": {
       "user": {
+        "title": "Sun Shade Integration",
+        "description": "Choose how to configure the integration.",
+        "menu_options": {
+          "manual": "Configure manually",
+          "import_file": "Import from JSON config file"
+        }
+      },
+      "general": {
         "title": "General Settings",
         "description": "Configure the sun shade integration update interval.",
         "data": {
@@ -9,6 +17,16 @@
         },
         "data_description": {
           "update_interval": "How often to recalculate sun exposure (30–3600 seconds)"
+        }
+      },
+      "import_file": {
+        "title": "Import Configuration",
+        "description": "Provide the path to a JSON configuration file. The file will be parsed and all walls, windows, and plant data will be imported.",
+        "data": {
+          "config_file_path": "Config file path"
+        },
+        "data_description": {
+          "config_file_path": "Full path to the JSON config file (e.g. /sun-plant-simulator/config/default_config.json)"
         }
       },
       "wall": {
@@ -83,7 +101,8 @@
       "duplicate_wall_id": "A wall with this ID already exists",
       "duplicate_window_id": "A window with this ID already exists",
       "z_top_must_exceed_z_bottom": "Top Z must be greater than bottom Z",
-      "import_error": "Could not import sun_hit_detector. Make sure /sun-hit-detector is mounted."
+      "import_error": "Could not import configuration: {error}",
+      "import_lib_error": "Could not import sun_hit_detector. Make sure /sun-hit-detector is mounted."
     },
     "abort": {
       "already_configured": "Sun Shade Integration is already configured"

@@ -10,6 +10,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import DEGREE, PERCENTAGE, UnitOfTime
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
@@ -32,6 +33,8 @@ async def async_setup_entry(
     for window in windows:
         entities.append(WindowSunIntensitySensor(coordinator, entry, window))
         entities.append(WindowSunAngleSensor(coordinator, entry, window))
+        entities.append(WindowFirstLightSensor(coordinator, entry, window))
+        entities.append(WindowLastLightSensor(coordinator, entry, window))
 
     # Plant-level daily forecast sensors
     entities.append(PlantSunStartSensor(coordinator, entry))
@@ -56,9 +59,21 @@ class WindowSunIntensitySensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+        self._entry_id = entry.entry_id
         self._window_id = window["id"]
         self._attr_unique_id = f"{entry.entry_id}_{self._window_id}_intensity"
         self._attr_name = f"{self._window_id} sun intensity"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info to group under window device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"{self._entry_id}_{self._window_id}")},
+            name=f"Window {self._window_id}",
+            manufacturer="Sun Shade Integration",
+            model="Window Sun Sensor",
+            via_device=(DOMAIN, self._entry_id),
+        )
 
     @property
     def native_value(self) -> float | None:
@@ -85,9 +100,21 @@ class WindowSunAngleSensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+        self._entry_id = entry.entry_id
         self._window_id = window["id"]
         self._attr_unique_id = f"{entry.entry_id}_{self._window_id}_angle"
         self._attr_name = f"{self._window_id} sun angle"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info to group under window device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"{self._entry_id}_{self._window_id}")},
+            name=f"Window {self._window_id}",
+            manufacturer="Sun Shade Integration",
+            model="Window Sun Sensor",
+            via_device=(DOMAIN, self._entry_id),
+        )
 
     @property
     def native_value(self) -> float | None:
@@ -98,6 +125,108 @@ class WindowSunAngleSensor(CoordinatorEntity, SensorEntity):
         if detail is None:
             return None
         return detail["sun_angle_to_normal_deg"]
+
+
+class WindowFirstLightSensor(CoordinatorEntity, SensorEntity):
+    """Forecast: first time sun hits plant through this window today."""
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        entry: ConfigEntry,
+        window: dict,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._entry_id = entry.entry_id
+        self._window_id = window["id"]
+        self._attr_unique_id = f"{entry.entry_id}_{self._window_id}_first_light"
+        self._attr_name = f"{self._window_id} first light"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info to group under window device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"{self._entry_id}_{self._window_id}")},
+            name=f"Window {self._window_id}",
+            manufacturer="Sun Shade Integration",
+            model="Window Sun Sensor",
+            via_device=(DOMAIN, self._entry_id),
+        )
+
+    @property
+    def native_value(self) -> datetime | None:
+        """Return first time sun hits plant through this window today."""
+        if self.coordinator.data is None:
+            return None
+        detail = self.coordinator.data.get(self._window_id)
+        if detail is None:
+            return None
+        time_str = detail.get("first_light")
+        if time_str is None:
+            return None
+        return self._time_str_to_datetime(time_str)
+
+    def _time_str_to_datetime(self, time_str: str) -> datetime:
+        """Convert HH:MM string to today's datetime with timezone."""
+        from homeassistant.util import dt as dt_util
+
+        now = dt_util.now()
+        hour, minute = map(int, time_str.split(":"))
+        return now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+
+class WindowLastLightSensor(CoordinatorEntity, SensorEntity):
+    """Forecast: last time sun hits plant through this window today."""
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    def __init__(
+        self,
+        coordinator: DataUpdateCoordinator,
+        entry: ConfigEntry,
+        window: dict,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._entry_id = entry.entry_id
+        self._window_id = window["id"]
+        self._attr_unique_id = f"{entry.entry_id}_{self._window_id}_last_light"
+        self._attr_name = f"{self._window_id} last light"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info to group under window device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"{self._entry_id}_{self._window_id}")},
+            name=f"Window {self._window_id}",
+            manufacturer="Sun Shade Integration",
+            model="Window Sun Sensor",
+            via_device=(DOMAIN, self._entry_id),
+        )
+
+    @property
+    def native_value(self) -> datetime | None:
+        """Return last time sun hits plant through this window today."""
+        if self.coordinator.data is None:
+            return None
+        detail = self.coordinator.data.get(self._window_id)
+        if detail is None:
+            return None
+        time_str = detail.get("last_light")
+        if time_str is None:
+            return None
+        return self._time_str_to_datetime(time_str)
+
+    def _time_str_to_datetime(self, time_str: str) -> datetime:
+        """Convert HH:MM string to today's datetime with timezone."""
+        from homeassistant.util import dt as dt_util
+
+        now = dt_util.now()
+        hour, minute = map(int, time_str.split(":"))
+        return now.replace(hour=hour, minute=minute, second=0, microsecond=0)
 
 
 class PlantSunStartSensor(CoordinatorEntity, SensorEntity):
@@ -112,8 +241,19 @@ class PlantSunStartSensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+        self._entry_id = entry.entry_id
         self._attr_unique_id = f"{entry.entry_id}_plant_sun_start"
         self._attr_name = "Plant sun start"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info for the plant device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._entry_id)},
+            name="Sun Shade Plant",
+            manufacturer="Sun Shade Integration",
+            model="Plant Sun Sensor",
+        )
 
     @property
     def native_value(self) -> datetime | None:
@@ -149,8 +289,19 @@ class PlantSunEndSensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+        self._entry_id = entry.entry_id
         self._attr_unique_id = f"{entry.entry_id}_plant_sun_end"
         self._attr_name = "Plant sun end"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info for the plant device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._entry_id)},
+            name="Sun Shade Plant",
+            manufacturer="Sun Shade Integration",
+            model="Plant Sun Sensor",
+        )
 
     @property
     def native_value(self) -> datetime | None:
@@ -188,8 +339,19 @@ class PlantSunDurationSensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+        self._entry_id = entry.entry_id
         self._attr_unique_id = f"{entry.entry_id}_plant_sun_duration"
         self._attr_name = "Plant sun duration"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info for the plant device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._entry_id)},
+            name="Sun Shade Plant",
+            manufacturer="Sun Shade Integration",
+            model="Plant Sun Sensor",
+        )
 
     @property
     def native_value(self) -> int | None:

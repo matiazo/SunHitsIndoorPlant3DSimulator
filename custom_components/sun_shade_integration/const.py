@@ -38,6 +38,10 @@ CONF_PLANT_RADIUS = "plant_radius"
 CONF_PLANT_Z_MIN = "plant_z_min"
 CONF_PLANT_Z_MAX = "plant_z_max"
 
+# Config file import keys
+CONF_CONFIG_FILE_PATH = "config_file_path"
+DEFAULT_CONFIG_FILE_PATH = "/sun-plant-simulator/config/default_config.json"
+
 # Attribute names added to shade entities
 ATTR_WINDOW_ID = "window_id"
 ATTR_WINDOW_HAS_SUN = "window_has_sun"

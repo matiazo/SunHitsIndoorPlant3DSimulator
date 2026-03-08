@@ -83,7 +83,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         from sun_hit_detector.core.window_sun import check_windows_from_config
         from sun_hit_detector.core.sun_position import generate_sun_data_for_date
         from sun_hit_detector.core.hit_test import (
-            check_sun_hits_plant_from_config,
             check_plant_hit_per_window_from_config,
         )
     except ImportError as e:
@@ -112,13 +111,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _forecast_cache: dict[str, Any] = {"date": None, "data": None}
 
     def _compute_daily_plant_forecast(today: date) -> dict[str, Any]:
-        """Compute plant sun forecast for the entire day.
+        """Compute plant sun forecast for the entire day, including per-window data.
 
-        Scans sun positions at 15-minute intervals and uses the plant-level
-        ray-casting hit test to determine when sunlight reaches the plant.
+        Scans sun positions at 15-minute intervals and uses the per-window
+        ray-casting hit test to determine when sunlight reaches the plant
+        through each window.
 
-        Returns dict with sun_start, sun_end (HH:MM strings), and
-        sun_duration_min (int minutes). All None if no sun hits the plant.
+        Returns dict with sun_start, sun_end (HH:MM strings),
+        sun_duration_min (int minutes), and per_window dict mapping
+        window_id to first_light / last_light times.
         """
         latitude = hass.config.latitude
         longitude = hass.config.longitude
@@ -138,13 +139,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         last_hit: str | None = None
         hit_count = 0
 
+        # Collect all window IDs from config
+        window_ids = [w["id"] for w in data.get(CONF_WINDOWS, [])]
+        per_window: dict[str, dict[str, str | None]] = {
+            wid: {"first_light": None, "last_light": None}
+            for wid in window_ids
+        }
+
         for point in sun_data:
-            hit_result = check_sun_hits_plant_from_config(
+            per_win_hits = check_plant_hit_per_window_from_config(
                 sun_azimuth_deg=point["azimuth_deg"],
                 sun_elevation_deg=point["elevation_deg"],
                 config=sim_config,
             )
-            if hit_result.is_hit:
+            any_hit = False
+            for wid, is_hit in per_win_hits.items():
+                if is_hit:
+                    any_hit = True
+                    if per_window.get(wid) is not None:
+                        if per_window[wid]["first_light"] is None:
+                            per_window[wid]["first_light"] = point["timestamp"]
+                        per_window[wid]["last_light"] = point["timestamp"]
+
+            if any_hit:
                 hit_count += 1
                 if first_hit is None:
                     first_hit = point["timestamp"]
@@ -154,6 +171,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "sun_start": first_hit,
             "sun_end": last_hit,
             "sun_duration_min": hit_count * 15,
+            "per_window": per_window,
         }
 
     async def _async_update_data() -> dict[str, Any]:
@@ -214,9 +232,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     "sun_start": None,
                     "sun_end": None,
                     "sun_duration_min": 0,
+                    "per_window": {},
                 }
 
         window_data["_plant_forecast"] = _forecast_cache["data"]
+
+        # Merge per-window forecast data into each window's data dict
+        forecast = _forecast_cache["data"]
+        if forecast and "per_window" in forecast:
+            for wid, pw_data in forecast["per_window"].items():
+                if wid in window_data:
+                    window_data[wid]["first_light"] = pw_data.get("first_light")
+                    window_data[wid]["last_light"] = pw_data.get("last_light")
 
         _LOGGER.debug(
             "Sun update: azimuth=%.1f, elevation=%.1f, windows_in_sun=%s",
