@@ -58,7 +58,6 @@ class WindowHasSunBinarySensor(CoordinatorEntity, BinarySensorEntity):
             name=f"Window {self._window_id}",
             manufacturer="Sun Shade Integration",
             model="Window Sun Sensor",
-            via_device=(DOMAIN, self._entry_id),
         )
 
     @property

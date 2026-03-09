@@ -84,7 +84,6 @@ class WindowSunIntensitySensor(CoordinatorEntity, SensorEntity):
             name=f"Window {self._window_id}",
             manufacturer="Sun Shade Integration",
             model="Window Sun Sensor",
-            via_device=(DOMAIN, self._entry_id),
         )
 
     @property
@@ -125,7 +124,6 @@ class WindowSunAngleSensor(CoordinatorEntity, SensorEntity):
             name=f"Window {self._window_id}",
             manufacturer="Sun Shade Integration",
             model="Window Sun Sensor",
-            via_device=(DOMAIN, self._entry_id),
         )
 
     @property
@@ -165,7 +163,6 @@ class WindowFirstLightSensor(CoordinatorEntity, SensorEntity):
             name=f"Window {self._window_id}",
             manufacturer="Sun Shade Integration",
             model="Window Sun Sensor",
-            via_device=(DOMAIN, self._entry_id),
         )
 
     @property
@@ -208,7 +205,6 @@ class WindowLastLightSensor(CoordinatorEntity, SensorEntity):
             name=f"Window {self._window_id}",
             manufacturer="Sun Shade Integration",
             model="Window Sun Sensor",
-            via_device=(DOMAIN, self._entry_id),
         )
 
     @property
