@@ -591,7 +591,8 @@ const layout = {{
         xaxis: {{ title: 'X (m)', range: [-1, {w2_len + 2}], backgroundcolor: '#1a1a2e', gridcolor: '#333', color: '#aaa' }},
         yaxis: {{ title: 'Y (m)', range: [-1, {w1_len + 2}], backgroundcolor: '#1a1a2e', gridcolor: '#333', color: '#aaa' }},
         zaxis: {{ title: 'Z (m)', range: [-0.5, {CEILING_HEIGHT + 2}], backgroundcolor: '#1a1a2e', gridcolor: '#333', color: '#aaa' }},
-        aspectmode: 'data',
+        aspectmode: 'manual',
+        aspectratio: {{ x: 1, y: 1, z: 1 }},
         camera: {{
             eye: {{ x: 1.8, y: -1.5, z: 1.0 }},
             center: {{ x: 0, y: 0, z: -0.15 }}
