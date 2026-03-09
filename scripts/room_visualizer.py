@@ -157,6 +157,36 @@ def frustum_mesh(corners_top, corners_bottom):
     return vx, vy, vz, ii, jj, kk
 
 
+def simplified_window_corners(w):
+    """Compute axis-aligned window corners for simplified coordinate system.
+
+    get_corners() uses the real-world azimuth to orient the horizontal axis,
+    which produces rotated corners.  In simplified coords the walls are
+    axis-aligned so we compute corners directly from center, width, height.
+
+    Returns [BL, BR, TR, TL] as np arrays.
+    """
+    cx, cy, cz = float(w.center[0]), float(w.center[1]), float(w.center[2])
+    hw = w.width / 2
+    hh = w.height / 2
+    if w.axis == "x":
+        # Wall runs along X, window face at y = cy (0)
+        return [
+            np.array([cx - hw, cy, cz - hh]),  # BL
+            np.array([cx + hw, cy, cz - hh]),  # BR
+            np.array([cx + hw, cy, cz + hh]),  # TR
+            np.array([cx - hw, cy, cz + hh]),  # TL
+        ]
+    else:
+        # Wall runs along Y, window face at x = cx (0)
+        return [
+            np.array([cx, cy - hw, cz - hh]),  # BL
+            np.array([cx, cy + hw, cz - hh]),  # BR
+            np.array([cx, cy + hw, cz + hh]),  # TR
+            np.array([cx, cy - hw, cz + hh]),  # TL
+        ]
+
+
 def project_corner_to_floor(corner, light_dir, max_t=MAX_PROJECTION_T):
     """Project a window corner along light_dir until z=0."""
     if light_dir[2] >= 0:
@@ -210,7 +240,7 @@ def precompute_time_data(config, sun_data, wall_lengths):
         window_volumes = []
         for w in windows:
             is_facing, angle_deg, intensity = check_window_sun_exposure_geometric(w, sun_dir)
-            corners = w.get_corners()  # BL, BR, TR, TL viewed from outside
+            corners = simplified_window_corners(w)
 
             vol = {
                 "window_id": w.id,
@@ -320,7 +350,7 @@ def build_window_traces(config):
     """Window glass (transparent blue) + frame lines."""
     traces = []
     for w in config.windows:
-        corners = w.get_corners()
+        corners = simplified_window_corners(w)
         xs = [float(c[0]) for c in corners]
         ys = [float(c[1]) for c in corners]
         zs = [float(c[2]) for c in corners]
