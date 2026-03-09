@@ -48,7 +48,7 @@ PLATFORMS = ["binary_sensor", "sensor"]
 def _build_config_dict(data: dict) -> dict:
     """Wrap entry.data into the format Config.from_dict() expects."""
     return {
-        "coordinate_system": "ENU",
+        "coordinate_system": "simplified",
         "corner": {"x": 0.0, "y": 0.0},
         "walls": data.get(CONF_WALLS, []),
         "windows": data.get(CONF_WINDOWS, []),
