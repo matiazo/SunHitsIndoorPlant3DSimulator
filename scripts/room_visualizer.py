@@ -55,7 +55,7 @@ def load_config_and_location(config_path: str):
     wall_lengths = {}
     for w in walls_raw:
         wall_lengths[w["id"]] = w.get("visualization", {}).get("wall_length", 15.0)
-    return config, location, wall_lengths
+    return config, location, wall_lengths, walls_raw
 
 
 # ---------------------------------------------------------------------------
@@ -322,13 +322,18 @@ def build_floor_trace(wall_lengths):
     }
 
 
-def build_wall_traces(config, wall_lengths):
+def build_wall_traces(config, wall_lengths, raw_walls=None):
     """Build wall box meshes. Walls are semi-transparent."""
     traces = []
-    thickness = 0.30
+    # Get thickness from raw config data
+    thickness_map = {}
+    if raw_walls:
+        for rw in raw_walls:
+            thickness_map[rw["id"]] = rw.get("thickness", 0.20)
     for wall_cfg in config.walls:
         wid = wall_cfg.id
         length = wall_lengths.get(wid, 15.0)
+        thickness = thickness_map.get(wid, 0.20)
         if wid == "wall_1":
             vx, vy, vz, ii, jj, kk = box_mesh(0, length, -thickness, 0, 0, CEILING_HEIGHT)
         else:
@@ -588,8 +593,8 @@ for (let i = 0; i < NUM_WINDOWS; i++) {{
 // ---- Layout ----
 const layout = {{
     scene: {{
-        xaxis: {{ title: 'X (m)', range: [-1, {w2_len + 2}], backgroundcolor: '#1a1a2e', gridcolor: '#333', color: '#aaa' }},
-        yaxis: {{ title: 'Y (m)', range: [-1, {w1_len + 2}], backgroundcolor: '#1a1a2e', gridcolor: '#333', color: '#aaa' }},
+        xaxis: {{ title: 'X (m)', range: [-1, {w1_len + 2}], backgroundcolor: '#1a1a2e', gridcolor: '#333', color: '#aaa' }},
+        yaxis: {{ title: 'Y (m)', range: [-1, {w2_len + 2}], backgroundcolor: '#1a1a2e', gridcolor: '#333', color: '#aaa' }},
         zaxis: {{ title: 'Z (m)', range: [-0.5, {CEILING_HEIGHT + 2}], backgroundcolor: '#1a1a2e', gridcolor: '#333', color: '#aaa' }},
         aspectmode: 'manual',
         aspectratio: {{ x: 1, y: 1, z: 1 }},
@@ -805,7 +810,7 @@ def main():
         target_date = date.today()
 
     config_path = ROOT / "config" / "default_config.json"
-    config, location, wall_lengths = load_config_and_location(str(config_path))
+    config, location, wall_lengths, walls_raw = load_config_and_location(str(config_path))
 
     print(f"Generating visualization for {target_date} ...")
     print(f"  Location: ({location['latitude']}, {location['longitude']}) "
@@ -833,7 +838,7 @@ def main():
     window_ids = [w.id for w in config.windows]
     static_traces = []
     static_traces.append(build_floor_trace(wall_lengths))
-    static_traces.extend(build_wall_traces(config, wall_lengths))
+    static_traces.extend(build_wall_traces(config, wall_lengths, walls_raw))
     static_traces.extend(build_window_traces(config))
     static_traces.append(build_plant_trace(config.plant))
     static_traces.append(build_sample_points_trace(sample_pts))
