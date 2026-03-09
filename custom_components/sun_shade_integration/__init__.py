@@ -27,6 +27,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.const import STATE_UNKNOWN, STATE_UNAVAILABLE
+from homeassistant.util import dt as dt_util
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
@@ -217,7 +218,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             }
 
         # Compute daily plant forecast (cached per date)
-        today = date.today()
+        today = dt_util.now().date()
         if _forecast_cache["date"] != today:
             try:
                 forecast = await hass.async_add_executor_job(

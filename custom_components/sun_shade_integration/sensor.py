@@ -16,8 +16,20 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN, CONF_WINDOWS
+
+
+def _time_str_to_datetime(time_str: str) -> datetime:
+    """Convert HH:MM string to today's datetime in HA's local timezone.
+
+    Constructs a timezone-aware datetime using HA's configured timezone,
+    which correctly handles DST transitions.
+    """
+    now = dt_util.now()
+    hour, minute = map(int, time_str.split(":"))
+    return now.replace(hour=hour, minute=minute, second=0, microsecond=0)
 
 
 async def async_setup_entry(
@@ -167,15 +179,7 @@ class WindowFirstLightSensor(CoordinatorEntity, SensorEntity):
         time_str = detail.get("first_light")
         if time_str is None:
             return None
-        return self._time_str_to_datetime(time_str)
-
-    def _time_str_to_datetime(self, time_str: str) -> datetime:
-        """Convert HH:MM string to today's datetime with timezone."""
-        from homeassistant.util import dt as dt_util
-
-        now = dt_util.now()
-        hour, minute = map(int, time_str.split(":"))
-        return now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        return _time_str_to_datetime(time_str)
 
 
 class WindowLastLightSensor(CoordinatorEntity, SensorEntity):
@@ -218,15 +222,7 @@ class WindowLastLightSensor(CoordinatorEntity, SensorEntity):
         time_str = detail.get("last_light")
         if time_str is None:
             return None
-        return self._time_str_to_datetime(time_str)
-
-    def _time_str_to_datetime(self, time_str: str) -> datetime:
-        """Convert HH:MM string to today's datetime with timezone."""
-        from homeassistant.util import dt as dt_util
-
-        now = dt_util.now()
-        hour, minute = map(int, time_str.split(":"))
-        return now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        return _time_str_to_datetime(time_str)
 
 
 class PlantSunStartSensor(CoordinatorEntity, SensorEntity):
@@ -261,20 +257,12 @@ class PlantSunStartSensor(CoordinatorEntity, SensorEntity):
         forecast = self._get_forecast()
         if forecast is None or forecast.get("sun_start") is None:
             return None
-        return self._time_str_to_datetime(forecast["sun_start"])
+        return _time_str_to_datetime(forecast["sun_start"])
 
     def _get_forecast(self) -> dict | None:
         if self.coordinator.data is None:
             return None
         return self.coordinator.data.get("_plant_forecast")
-
-    def _time_str_to_datetime(self, time_str: str) -> datetime:
-        """Convert HH:MM string to today's datetime with timezone."""
-        from homeassistant.util import dt as dt_util
-
-        now = dt_util.now()
-        hour, minute = map(int, time_str.split(":"))
-        return now.replace(hour=hour, minute=minute, second=0, microsecond=0)
 
 
 class PlantSunEndSensor(CoordinatorEntity, SensorEntity):
@@ -309,20 +297,12 @@ class PlantSunEndSensor(CoordinatorEntity, SensorEntity):
         forecast = self._get_forecast()
         if forecast is None or forecast.get("sun_end") is None:
             return None
-        return self._time_str_to_datetime(forecast["sun_end"])
+        return _time_str_to_datetime(forecast["sun_end"])
 
     def _get_forecast(self) -> dict | None:
         if self.coordinator.data is None:
             return None
         return self.coordinator.data.get("_plant_forecast")
-
-    def _time_str_to_datetime(self, time_str: str) -> datetime:
-        """Convert HH:MM string to today's datetime with timezone."""
-        from homeassistant.util import dt as dt_util
-
-        now = dt_util.now()
-        hour, minute = map(int, time_str.split(":"))
-        return now.replace(hour=hour, minute=minute, second=0, microsecond=0)
 
 
 class PlantSunDurationSensor(CoordinatorEntity, SensorEntity):

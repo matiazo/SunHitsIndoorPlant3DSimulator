@@ -4,11 +4,14 @@ This module calculates the sun's azimuth and elevation for a given
 latitude, longitude, date, and time using standard solar position algorithms.
 """
 
+import logging
 import math
 from dataclasses import dataclass
 from datetime import datetime, date, timedelta
 from typing import Optional
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -155,37 +158,48 @@ def resolve_timezone_offset(
     dt: datetime,
     timezone_offset: float = 0.0,
     timezone_name: Optional[str] = None,
+    tz: Optional[ZoneInfo] = None,
 ) -> float:
     """Resolve the UTC offset (hours) for a local datetime.
+
+    Uses an already-resolved ZoneInfo object when available (preferred),
+    falls back to timezone_name string lookup, then to the fixed offset.
 
     Args:
         dt: Naive datetime interpreted as local wall time.
         timezone_offset: Fallback fixed offset in hours.
         timezone_name: Optional IANA timezone identifier.
+        tz: Optional pre-resolved ZoneInfo object (skips string lookup).
 
     Returns:
         Offset in hours to apply when computing solar position.
     """
-    if timezone_name:
+    if tz is None and timezone_name:
         try:
             tz = ZoneInfo(timezone_name)
         except ZoneInfoNotFoundError:
-            pass
-        else:
-            aware = datetime(
-                dt.year,
-                dt.month,
-                dt.day,
-                dt.hour,
-                dt.minute,
-                dt.second,
-                dt.microsecond,
-                tzinfo=tz,
-                fold=getattr(dt, "fold", 0),
+            _LOGGER.warning(
+                "ZoneInfo('%s') not found; falling back to fixed offset %.1f. "
+                "Install the 'tzdata' package for correct DST handling.",
+                timezone_name,
+                timezone_offset,
             )
-            offset = aware.utcoffset()
-            if offset is not None:
-                return offset.total_seconds() / 3600.0
+
+    if tz is not None:
+        aware = datetime(
+            dt.year,
+            dt.month,
+            dt.day,
+            dt.hour,
+            dt.minute,
+            dt.second,
+            dt.microsecond,
+            tzinfo=tz,
+            fold=getattr(dt, "fold", 0),
+        )
+        offset = aware.utcoffset()
+        if offset is not None:
+            return offset.total_seconds() / 3600.0
 
     return timezone_offset
 
@@ -215,13 +229,16 @@ def generate_sun_data_for_date(
     Returns:
         List of {timestamp, azimuth_deg, elevation_deg} dictionaries.
     """
+    # Resolve ZoneInfo once and reuse for all samples in the day
+    tz = _resolve_zoneinfo(timezone_name)
+
     data = []
 
     current_time = datetime(target_date.year, target_date.month, target_date.day, start_hour, 0)
     end_time = datetime(target_date.year, target_date.month, target_date.day, end_hour, 0)
 
     while current_time <= end_time:
-        offset = resolve_timezone_offset(current_time, timezone_offset, timezone_name)
+        offset = resolve_timezone_offset(current_time, timezone_offset, tz=tz)
         pos = calculate_sun_position(latitude, longitude, current_time, offset)
 
         # Only include if sun is above horizon
@@ -256,6 +273,7 @@ def get_sunrise_sunset(
     Returns:
         Tuple of (sunrise_datetime, sunset_datetime). May be None for polar regions.
     """
+    tz = _resolve_zoneinfo(timezone_name)
     sunrise = None
     sunset = None
 
@@ -263,7 +281,7 @@ def get_sunrise_sunset(
     for hour in range(4, 12):
         for minute in range(0, 60, 5):
             dt = datetime(target_date.year, target_date.month, target_date.day, hour, minute)
-            offset = resolve_timezone_offset(dt, timezone_offset, timezone_name)
+            offset = resolve_timezone_offset(dt, timezone_offset, tz=tz)
             pos = calculate_sun_position(latitude, longitude, dt, offset)
             if pos.elevation_deg > 0 and sunrise is None:
                 sunrise = dt
@@ -275,7 +293,7 @@ def get_sunrise_sunset(
     for hour in range(20, 12, -1):
         for minute in range(55, -1, -5):
             dt = datetime(target_date.year, target_date.month, target_date.day, hour, minute)
-            offset = resolve_timezone_offset(dt, timezone_offset, timezone_name)
+            offset = resolve_timezone_offset(dt, timezone_offset, tz=tz)
             pos = calculate_sun_position(latitude, longitude, dt, offset)
             if pos.elevation_deg > 0 and sunset is None:
                 sunset = dt
@@ -284,6 +302,24 @@ def get_sunrise_sunset(
             break
 
     return sunrise, sunset
+
+
+def _resolve_zoneinfo(timezone_name: Optional[str]) -> Optional[ZoneInfo]:
+    """Resolve an IANA timezone name to a ZoneInfo object.
+
+    Returns None (with a warning) if the name is invalid or tzdata is missing.
+    """
+    if not timezone_name:
+        return None
+    try:
+        return ZoneInfo(timezone_name)
+    except (ZoneInfoNotFoundError, KeyError):
+        _LOGGER.warning(
+            "ZoneInfo('%s') not available. Install the 'tzdata' package "
+            "for correct DST handling.",
+            timezone_name,
+        )
+        return None
 
 
 def _is_leap_year(year: int) -> bool:
