@@ -1,7 +1,7 @@
 {
   "coordinate_system": "simplified",
   "units": "meters",
-  "description": "Simplified coordinate system: Wall 1 along X-axis, Wall 2 along Y-axis",
+  "description": "Simplified coordinate system: Wall 1 along X-axis, Wall 2 along Y-axis. Dimensions from 2020 Cann Associates engineering plan, converted from ft/in to meters.",
 
   "location": {
     "latitude": 28.349035,
@@ -21,21 +21,21 @@
     {
       "id": "wall_1",
       "outward_normal_azimuth_deg": 210,
-      "thickness": 0.30,
+      "thickness": 0.2032,
       "axis": "x",
-      "description": "Wall 1 runs along X-axis, 30cm thick wall",
+      "description": "Wall 1 (az 210) runs along X-axis, 8in thick wall, 200in (16ft-8in) inside length",
       "visualization": {
-        "wall_length": 6.5
+        "wall_length": 5.08
       }
     },
     {
       "id": "wall_2",
       "outward_normal_azimuth_deg": 300,
-      "thickness": 0.30,
+      "thickness": 0.2032,
       "axis": "y",
-      "description": "Wall 2 runs along Y-axis, 30cm thick wall",
+      "description": "Wall 2 (az 300) runs along Y-axis, 8in thick wall, 368in (30ft-8in) inside length",
       "visualization": {
-        "wall_length": 10.0
+        "wall_length": 9.3472
       }
     }
   ],
@@ -44,86 +44,91 @@
     {
       "id": "window_1a",
       "wall_id": "wall_1",
-      "x_position": 0.36,
-      "width": 0.89,
-      "height": 1.5,
+      "x_position": 0.5842,
+      "width": 0.9144,
+      "height": 1.524,
       "z_bottom": 4.2,
-      "z_top": 5.7,
-      "shade_entity_id": "cover.living_room_front_shade_4"
+      "z_top": 5.724,
+      "shade_entity_id": "cover.living_room_front_shade_4",
+      "description": "3ft x 5ft window, 23in from corner, 6in gap to next"
     },
     {
       "id": "window_1b",
       "wall_id": "wall_1",
-      "x_position": 1.44,
-      "width": 0.89,
-      "height": 1.5,
+      "x_position": 1.6510,
+      "width": 0.9144,
+      "height": 1.524,
       "z_bottom": 4.2,
-      "z_top": 5.7,
+      "z_top": 5.724,
       "shade_entity_id": "cover.living_room_front_shade_3"
     },
     {
       "id": "window_1c",
       "wall_id": "wall_1",
-      "x_position": 2.52,
-      "width": 0.89,
-      "height": 1.5,
+      "x_position": 2.7178,
+      "width": 0.9144,
+      "height": 1.524,
       "z_bottom": 4.2,
-      "z_top": 5.7,
+      "z_top": 5.724,
       "shade_entity_id": "cover.living_room_front_shade_2"
     },
     {
       "id": "window_1d",
       "wall_id": "wall_1",
-      "x_position": 3.6,
-      "width": 0.89,
-      "height": 1.5,
+      "x_position": 3.7846,
+      "width": 0.9144,
+      "height": 1.524,
       "z_bottom": 4.2,
-      "z_top": 5.7,
+      "z_top": 5.724,
       "shade_entity_id": "cover.living_room_front_shade_1"
     },
     {
       "id": "window_2a",
       "wall_id": "wall_2",
-      "y_position": 0.8,
-      "width": 0.89,
-      "height": 1.5,
+      "y_position": 0.762,
+      "width": 0.9144,
+      "height": 1.524,
       "z_bottom": 4.2,
-      "z_top": 5.7,
-      "shade_entity_id": "cover.living_room_side_shade_1"
+      "z_top": 5.724,
+      "shade_entity_id": "cover.living_room_side_shade_1",
+      "description": "3ft x 5ft window, center 4ft from corner"
     },
     {
       "id": "window_2b",
       "wall_id": "wall_2",
-      "y_position": 4.0,
-      "width": 0.89,
-      "height": 1.5,
+      "y_position": 3.8862,
+      "width": 0.9144,
+      "height": 1.524,
       "z_bottom": 4.2,
-      "z_top": 5.7,
-      "shade_entity_id": "cover.living_room_side_shade_2"
+      "z_top": 5.724,
+      "shade_entity_id": "cover.living_room_side_shade_2",
+      "description": "center 14ft-3in from corner"
     },
     {
       "id": "window_2c",
       "wall_id": "wall_2",
-      "y_position": 5.07,
-      "width": 0.89,
-      "height": 1.5,
+      "y_position": 4.953,
+      "width": 0.9144,
+      "height": 1.524,
       "z_bottom": 4.2,
-      "z_top": 5.7,
-      "shade_entity_id": "cover.living_room_side_shade_3"
+      "z_top": 5.724,
+      "shade_entity_id": "cover.living_room_side_shade_3",
+      "description": "center 17ft-9in from corner"
     },
     {
       "id": "window_2d",
       "wall_id": "wall_2",
-      "y_position": 8.26,
-      "width": 0.89,
-      "height": 1.5,
+      "y_position": 8.0772,
+      "width": 0.9144,
+      "height": 1.524,
       "z_bottom": 4.2,
-      "z_top": 5.7,
-      "shade_entity_id": "cover.living_room_side_shade_4"
+      "z_top": 5.724,
+      "shade_entity_id": "cover.living_room_side_shade_4",
+      "description": "center 28ft from corner"
     }
   ],
 
-  "window_position_reference": "x_position and y_position measure the distance from the shared corner to the INNER edge along their respective walls. Window centers are derived as position + width/2 automatically.",
+  "window_position_reference": "x_position and y_position measure the distance from the shared corner to the INNER edge along their respective walls. All windows are 3ft x 5ft (0.9144m x 1.524m). Wall_1 windows have 6in gaps between them. Wall_2 window centers from plan: 4ft, 14ft-3in, 17ft-9in, 28ft.",
 
   "plant": {
     "dist_from_wall1": 8.0,
