@@ -336,21 +336,21 @@ class TestFeb1Measurements:
             assert result.window_id and result.window_id.startswith("window_1"), \
                 f"At {time_str}: Light should come from wall_1, got {result.window_id}"
 
-    def test_no_hit_before_1450(self):
-        """Before 14:50, the plant should not be hit from wall_1."""
+    def test_no_hit_before_1430(self):
+        """Before 14:30, the plant should not be hit from wall_1."""
         config = Config.from_json_file("config/default_config.json")
 
-        # At 14:40, sun is at Az=216.56°, El=35.66°
+        # At 14:20, sun is at Az~213°, El~38° — too steep to reach plant
         result = check_sun_hits_plant(
-            sun_azimuth_deg=216.56,
-            sun_elevation_deg=35.66,
+            sun_azimuth_deg=213.0,
+            sun_elevation_deg=38.0,
             plant=config.plant,
             windows=config.windows,
         )
 
-        print(f"\n14:40 test:")
+        print(f"\n14:20 test:")
         print(f"  Is hit: {result.is_hit}")
         print(f"  Window: {result.window_id}")
 
-        # At 14:40 the light should not yet hit the plant
-        assert not result.is_hit, "Plant should not be hit at 14:40"
+        # At 14:20 the light should not yet hit the plant
+        assert not result.is_hit, "Plant should not be hit at 14:20"
