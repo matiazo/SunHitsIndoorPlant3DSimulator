@@ -25,9 +25,9 @@ from sun_hit_detector.core.hit_test import check_plant_hit_per_window_from_confi
 CONFIG_PATH = ROOT / "config" / "default_config.json"
 OUTPUT_PATH = ROOT / "examples" / "yearly_analysis.html"
 
-# Time-of-day grid for heatmaps (6:00–20:00 at 5-min steps)
-HEAT_START_HOUR = 6
-HEAT_END_HOUR = 20
+# Time-of-day grid for heatmaps (12:00–18:00 at 5-min steps)
+HEAT_START_HOUR = 12
+HEAT_END_HOUR = 18
 HEAT_TIMES = []
 for _h in range(HEAT_START_HOUR, HEAT_END_HOUR):
     for _m in range(0, 60, 5):
