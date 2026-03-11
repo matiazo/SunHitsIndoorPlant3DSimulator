@@ -18,11 +18,38 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Publishing version: $VERSION"
+
+      - name: Set version in pyproject.toml and manifest.json
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" custom_components/sun_shade_integration/manifest.json
+          echo "=== pyproject.toml version ==="
+          grep '^version' pyproject.toml
+          echo "=== manifest.json version ==="
+          grep '"version"' custom_components/sun_shade_integration/manifest.json
+
       - name: Install build tools
         run: pip install build
 
       - name: Build package
         run: python -m build
+
+      - name: Verify built version
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ls dist/
+          if ! ls dist/ | grep -q "$VERSION"; then
+            echo "ERROR: Built package version does not match tag $VERSION"
+            exit 1
+          fi
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
