@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sun-hit-detector"
-version = "2.2.0"
+version = "2.2.1"
 description = "A deterministic geometric simulator for sunlight-plant hit detection"
 readme = "README.md"
 license = {file = "LICENSE"}
