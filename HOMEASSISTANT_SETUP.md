@@ -1,141 +1,102 @@
 # Home Assistant Integration Setup
 
-## Server Access
+## Prerequisites
 
-- **Server**: `dell7050` (accessible via SSH)
-- **SSH Command**: `ssh dell7050`
-- **Home Assistant Config Path**: `/home/master/homeassistant/`
-- **Docker Compose Location**: `/home/master/docker-compose.yml`
+- Home Assistant **2024.1.0+** (Docker or HA OS)
+- Python package `sun-hit-detector` installed in the HA environment
 
-## Home Assistant Details
+## Installation
 
-- **Container Name**: `home-assistant`
-- **Image**: `ghcr.io/home-assistant/home-assistant:2025.9.3`
-- **Network Mode**: `host`
-- **Config Mount**: `/home/master/homeassistant:/config`
-- **Timezone**: `America/New_York`
+### Option A: HACS (Recommended)
 
-## Sun Plant Simulator Integration
+1. Install [HACS](https://hacs.xyz/) if not already installed
+2. Add this repository as a **custom repository** in HACS:
+   - URL: `https://github.com/matiazo/SunHitsIndoorPlant3DSimulator`
+   - Category: **Integration**
+3. Search for "Sun Shade Integration" in HACS and install
+4. Restart Home Assistant
 
-### Installation Location
-- **Host Path**: `/home/master/sun-hit-detector/`
-- **Container Mount**: `/sun-hit-detector:ro`
-- **Virtual Environment**: `/home/master/sun-hit-detector/venv/`
+### Option B: Manual Install
 
-### Configuration Files
-- **Plant/Room Config**: `/home/master/homeassistant/sun_plant_config.json` (copy of `config/default_config.json`)
-- **Sensor Config**: `/home/master/homeassistant/sun_plant_sensor.yaml`
-- **Main Config**: `/home/master/homeassistant/configuration.yaml` (includes `command_line: !include sun_plant_sensor.yaml`)
+1. Copy `custom_components/sun_shade_integration/` into your HA config directory:
+   ```
+   <ha-config>/custom_components/sun_shade_integration/
+   ```
+2. Install the core library inside the HA container:
+   ```bash
+   docker exec home-assistant pip install sun-hit-detector
+   ```
+3. Restart Home Assistant
 
-### Sensors Created
-1. **Binary Sensor**: `binary_sensor.plant_direct_sunlight`
-   - State: `on`/`off`
-   - Device Class: `light`
-   - Scan Interval: 300 seconds
+## Configuration (UI Config Flow)
 
-2. **Sensor**: `sensor.plant_sun_details`
-   - Value: `true`/`false` (is_hit)
-   - Attributes: `sun_azimuth`, `sun_elevation`, `hit_window`, `hit_wall`, `timestamp`
+All configuration is done via the Home Assistant UI — **no YAML configuration needed**.
 
-## Common Commands
+1. Go to **Settings → Devices & Services → Add Integration**
+2. Search for **"Sun Shade Integration"**
+3. Follow the config flow wizard:
+   - **Step 1**: Choose manual config or import from JSON file
+   - **Step 2**: Define walls (axis, outward normal azimuth, thickness)
+   - **Step 3**: Define windows per wall (position, size, optional shade entity)
+   - **Step 4**: Define plant position (perpendicular distances from each wall)
+4. The integration creates entities automatically
 
-### Testing the Script Inside Container
-```bash
-ssh dell7050 "docker exec home-assistant python3 /sun-hit-detector/check_plant_sun.py --config /config/sun_plant_config.json"
-```
+## Entities Created
 
-### Testing with JSON Output
-```bash
-ssh dell7050 "docker exec home-assistant python3 /sun-hit-detector/check_plant_sun.py --config /config/sun_plant_config.json --json"
-```
+### Per Window
+| Entity | Type | Description |
+|--------|------|-------------|
+| `binary_sensor.<window_id>_has_sun` | Binary Sensor | Whether window receives direct sun |
+| `sensor.<window_id>_sun_intensity` | Sensor (%) | Sun intensity factor (0–100%) |
+| `sensor.<window_id>_sun_angle` | Sensor (°) | Angle between sun and window normal |
+| `sensor.<window_id>_first_light` | Sensor (timestamp) | Forecast: first time sun hits plant through this window today |
+| `sensor.<window_id>_last_light` | Sensor (timestamp) | Forecast: last time sun hits plant through this window today |
 
-### View Home Assistant Logs
-```bash
-ssh dell7050 "docker logs home-assistant --tail 50"
-```
+### Plant Level
+| Entity | Type | Description |
+|--------|------|-------------|
+| `sensor.plant_sun_start` | Sensor (timestamp) | First time sun hits the plant today |
+| `sensor.plant_sun_end` | Sensor (timestamp) | Last time sun hits the plant today |
+| `sensor.plant_sun_duration` | Sensor (minutes) | Total sun exposure duration today |
 
-### Restart Home Assistant
-```bash
-ssh dell7050 "cd /home/master && docker compose restart home-assistant"
-```
+## Reconfiguring
 
-### Recreate Home Assistant Container
-```bash
-ssh dell7050 "cd /home/master && docker compose down home-assistant && docker compose up -d home-assistant"
-```
+To edit walls, windows, or plant position after setup:
 
-### Copy Files to Server
-```bash
-scp <local_file> dell7050:/home/master/sun-hit-detector/
-```
-
-### Copy Config to Home Assistant (requires sudo)
-```bash
-ssh -t dell7050  # Interactive session for sudo
-sudo cp /home/master/sun-hit-detector/config/default_config.json /home/master/homeassistant/sun_plant_config.json
-```
+1. Go to **Settings → Devices & Services**
+2. Find **Sun Shade Integration** and click **Configure**
+3. Use the menu to edit general settings, walls, windows, or plant position
 
 ## Updating the Integration
 
-1. **Update Python files locally** in VS Code
-2. **Copy changed files to server**:
-   ```bash
-   scp check_plant_sun.py dell7050:/home/master/sun-hit-detector/
-   scp sun_hit_detector/core/models.py dell7050:/home/master/sun-hit-detector/sun_hit_detector/core/
-   ```
-3. **Test the script**:
-   ```bash
-   ssh dell7050 "docker exec home-assistant python3 /sun-hit-detector/check_plant_sun.py --config /config/sun_plant_config.json"
-   ```
-4. **Restart Home Assistant** if configuration changed:
-   ```bash
-   ssh dell7050 "cd /home/master && docker compose restart home-assistant"
-   ```
+### Via HACS
+HACS will notify you of updates. Click **Update** and restart HA.
 
-## Directory Structure on Server
-
-```
-/home/master/
-├── docker-compose.yml          # Docker services config
-├── homeassistant/              # HA config directory (mounted as /config)
-│   ├── configuration.yaml      # Main HA config
-│   ├── sun_plant_sensor.yaml   # Command-line sensor definitions
-│   ├── sun_plant_config.json   # Plant/room geometry config
-│   ├── automations.yaml
-│   └── ...
-└── sun-hit-detector/        # This project (mounted as /sun-hit-detector)
-    ├── check_plant_sun.py      # CLI entry point for HA
-    ├── config/
-    │   └── default_config.json
-    ├── sun_hit_detector/
-    │   ├── core/
-    │   └── homeassistant/
-    └── venv/                   # Python virtual environment
-```
+### Manual Update
+1. Download the latest `custom_components/sun_shade_integration/` from this repository
+2. Replace the files in `<ha-config>/custom_components/sun_shade_integration/`
+3. Restart Home Assistant
 
 ## Troubleshooting
 
-### Permission Denied on Config Files
-Home Assistant config directory is owned by root. Use `sudo` via interactive SSH:
+### Integration Not Loading
+Check HA logs for errors:
 ```bash
-ssh -t dell7050
-sudo cp <source> /home/master/homeassistant/<dest>
+docker logs home-assistant 2>&1 | grep sun_shade
 ```
 
-### Script Returns Exit Code 1
-The script should always return exit code 0 for Home Assistant compatibility. If it returns 1, check:
-- Import errors (run script manually to see traceback)
-- Missing config file
-- Syntax errors in Python files
+Common causes:
+- Missing `sun-hit-detector` pip package — install with `pip install sun-hit-detector`
+- Old v1 config entry — remove and re-add the integration via UI
 
 ### Sensor Not Updating
-- Check scan_interval (default 300 seconds = 5 minutes)
-- Verify command works: `docker exec home-assistant python3 /sun-hit-detector/check_plant_sun.py --config /config/sun_plant_config.json`
-- Check HA logs: `docker logs home-assistant | grep command_line`
+- Default update interval is 300 seconds (5 minutes), configurable via options flow
+- Verify `sun.sun` entity is available in Developer Tools → States
 
-### Container Crash Loop
-If HA keeps crashing, check logs for Python package issues:
-```bash
-ssh dell7050 "docker logs home-assistant 2>&1 | tail -50"
-```
-Try recreating the container: `docker compose down home-assistant && docker compose up -d home-assistant`
+### Migration from v1
+If you previously used the JSON file-based configuration (v1), you must:
+1. Remove the old integration entry from **Settings → Devices & Services**
+2. Delete any leftover files: `sun_plant_config.json`, `sun_plant_sensor.yaml`
+3. Remove any `command_line:` or `sun_shade_integration:` entries from `configuration.yaml`
+4. Remove any `/sun-hit-detector` volume mounts from your `docker-compose.yml`
+5. Re-add the integration via the UI config flow

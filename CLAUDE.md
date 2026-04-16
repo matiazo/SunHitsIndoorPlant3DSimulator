@@ -12,8 +12,8 @@
 
 ## Key Documentation
 
-- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) — How to deploy the HA integration to a server (docker, volume mounts, scp)
-- [HOMEASSISTANT_SETUP.md](HOMEASSISTANT_SETUP.md) — HA integration setup instructions and architecture
+- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) — Window-to-shade mapping, deployment, and automation examples
+- [HOMEASSISTANT_SETUP.md](HOMEASSISTANT_SETUP.md) — HA integration setup: HACS install, config flow, entity reference
 - [WINDOW_SUN_IMPLEMENTATION_PLAN.md](WINDOW_SUN_IMPLEMENTATION_PLAN.md) — Design doc for the window sun exposure feature
 - [YEARLY_SIDE_WINDOW_ANALYSIS.md](YEARLY_SIDE_WINDOW_ANALYSIS.md) — Analysis of yearly sun patterns through side windows
 - [custom_components/sun_shade_integration/README.md](custom_components/sun_shade_integration/README.md) — HA integration docs: config flow wizard, entity reference, troubleshooting
@@ -38,7 +38,7 @@
 
 ## Deployment
 
-Target: `master@kube1.local` — HA runs in Docker with `/sun-hit-detector` volume mount. See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md).
+Target: `master@kube1.local` — HA runs in Docker. Integration is installed as a custom component under `custom_components/sun_shade_integration/` and configured via the HA UI config flow. See [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md).
 
 ## Development
 
