@@ -18,7 +18,10 @@
       "Bash(findstr:*)",
       "WebFetch(domain:www.home-assistant.io)",
       "Bash(git commit:*)",
-      "WebFetch(domain:www.hacs.xyz)"
+      "WebFetch(domain:www.hacs.xyz)",
+      "Bash(find C:/repo/SunHitsIndoorPlant3DSimulator -name .env* -o -name *.env)",
+      "Bash(wc:*)",
+      "Bash(npx --version)"
     ]
   }
 }

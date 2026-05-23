@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'FILE=\"$CLAUDE_TOOL_PARAM_FILE_PATH\"; if [[ \"$FILE\" == *.py ]]; then cd C:/repo/SunHitsIndoorPlant3DSimulator && python -m pytest tests/ -x -q --tb=short 2>&1 | tail -20; fi'",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}
